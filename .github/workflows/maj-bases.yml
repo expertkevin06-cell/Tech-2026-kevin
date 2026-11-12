@@ -4,6 +4,11 @@ on:
   schedule:
     - cron: "0 3 1,16 * *"
   workflow_dispatch:
+  push:
+    paths:
+      - "data/catalogue_source.json"
+      - "data/manual.json"
+      - "scripts/update_bases.py"
 
 permissions:
   contents: write
@@ -13,30 +18,48 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  maj:
+  rapide:
     runs-on: ubuntu-latest
-    timeout-minutes: 330
-
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-
-      - name: Icônes PNG
+        with: { python-version: "3.12" }
+      - name: Icônes
         run: |
           pip install pillow -q
           python scripts/make_icon.py || true
-
-      - name: MAJ massive des bases
+      - name: Phase rapide (catalogue + tes sites + RappelConso + Safety Gate)
+        env: { PHASE: rapide }
         run: python scripts/update_bases.py
+      - name: Publier tout de suite
+        run: |
+          git config user.name "kev-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add data
+          git add icons || true
+          git diff --cached --quiet || git commit -m "MAJ rapide bases + catalogue"
+          git pull --rebase origin main || true
+          git push
 
+  nhtsa:
+    needs: rapide
+    runs-on: ubuntu-latest
+    timeout-minutes: 320
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+        with: { ref: main }
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - name: Phase NHTSA (incrémentale)
+        env: { PHASE: nhtsa }
+        run: python scripts/update_bases.py
       - name: Publier
         run: |
           git config user.name "kev-bot"
           git config user.email "actions@users.noreply.github.com"
-          git add data icons || true
-          git diff --cached --quiet || git commit -m "MAJ auto bases $(date -u +%F)"
+          git add data
+          git diff --cached --quiet || git commit -m "MAJ NHTSA"
           git pull --rebase origin main || true
           git push
