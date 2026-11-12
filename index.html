@@ -3,21 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="description" content="KEV TECH & FIRE — Diagnostic technique automobile, étude incendie renforcée et analyse juridique du contexte.">
+<meta name="description" content="KEV TECH & FIRE — Diagnostic technique automobile, étude incendie renforcée et analyse juridique du contexte. Sans backend.">
 <meta name="theme-color" content="#070b1e">
 <title>KEV TECH &amp; FIRE — by Kevin</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <style>
-:root{
-  --bg:#070b1e;--card:rgba(15,21,50,.74);--card2:rgba(22,28,64,.58);
-  --line:rgba(255,255,255,.13);--line2:rgba(255,255,255,.22);
-  --txt:#eef2ff;--mut:#93a0d6;--mut2:#6b78ad;
-  --ok:#00e676;--warn:#ffc400;--bad:#ff1744;--info:#2979ff;
-  --acc:#00e676;--acc2:#2979ff;--fire:#ff6d00;--fire2:#ff1744;--amber:#ffd740;--violet:#7c4dff;--cyan:#00e5ff;
-  --r:20px;--r2:14px;--r3:10px;--sh:0 18px 60px rgba(0,0,0,.42);--head:74px;color-scheme:dark;
-}
+:root{--bg:#070b1e;--card:rgba(15,21,50,.74);--card2:rgba(22,28,64,.58);--line:rgba(255,255,255,.13);--line2:rgba(255,255,255,.22);--txt:#eef2ff;--mut:#93a0d6;--mut2:#6b78ad;--ok:#00e676;--warn:#ffc400;--bad:#ff1744;--info:#2979ff;--acc:#00e676;--acc2:#2979ff;--fire:#ff6d00;--fire2:#ff1744;--amber:#ffd740;--violet:#7c4dff;--cyan:#00e5ff;--r:20px;--r2:14px;--r3:10px;--sh:0 18px 60px rgba(0,0,0,.42);--head:74px;color-scheme:dark}
 html[data-theme="technique"]{--acc:#00e5ff;--acc2:#7c4dff}
 html[data-theme="incendie"]{--acc:#ff6d00;--acc2:#ff1744}
 *,*::before,*::after{box-sizing:border-box}
@@ -56,6 +49,7 @@ header h1{margin:0;font-size:1.02rem;font-weight:900;background:linear-gradient(
 .status-strip{display:flex;gap:6px;flex-wrap:wrap}
 .badge{display:inline-flex;align-items:center;gap:5px;font-size:.68rem;font-weight:700;padding:5px 10px;border-radius:20px;background:rgba(255,255,255,.07);border:1px solid var(--line);color:var(--mut);white-space:nowrap}
 .badge.live{color:var(--ok);border-color:rgba(0,230,118,.34);background:rgba(0,230,118,.08)}
+.badge.warnb{color:var(--warn);border-color:rgba(255,196,0,.34);background:rgba(255,196,0,.08)}
 .seg{display:flex;gap:2px;padding:3px;margin-left:auto;background:rgba(255,255,255,.07);border:1px solid var(--line);border-radius:22px}
 .seg button{border:0;background:transparent;color:var(--mut);cursor:pointer;padding:6px 13px;border-radius:18px;font-size:.74rem;font-weight:800;transition:.22s}
 .seg button.on{background:linear-gradient(90deg,var(--acc),var(--acc2));color:#04102a}
@@ -68,6 +62,8 @@ header h1{margin:0;font-size:1.02rem;font-weight:900;background:linear-gradient(
 .btn.green{background:linear-gradient(100deg,var(--ok),var(--cyan))}
 .btn.amber{background:linear-gradient(100deg,var(--amber),var(--fire))}
 .btn.small{padding:7px 12px;font-size:.76rem;border-radius:var(--r3)}
+.btn .ripple{position:absolute;border-radius:50%;transform:scale(0);pointer-events:none;background:rgba(255,255,255,.42);animation:ripple .55s ease-out forwards;z-index:-1}
+@keyframes ripple{to{transform:scale(3.4);opacity:0}}
 main{width:min(1080px,100%);margin:0 auto;padding:18px 16px 80px}
 .card{position:relative;overflow:hidden;background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:20px;margin-bottom:16px;box-shadow:var(--sh);backdrop-filter:blur(16px);animation:cardIn .45s cubic-bezier(.2,.7,.3,1) both}
 .card::before{content:"";position:absolute;inset:0 0 auto;height:2px;background:linear-gradient(90deg,transparent,var(--acc),var(--acc2),var(--amber),transparent);opacity:.75}
@@ -139,22 +135,19 @@ td{padding:8px 7px;border-bottom:1px solid rgba(255,255,255,.08)}
 @keyframes popOk{from{transform:scale(.4);opacity:0}}
 #gateKo .state-ico{animation:shake .45s ease both}
 @keyframes shake{20%,60%{transform:translateX(-7px)}40%,80%{transform:translateX(7px)}}
-#gateForm input{max-width:320px;margin:0 auto 10px;text-align:center;font-size:1rem}
+#gateForm input{max-width:340px;margin:0 auto 10px;text-align:center;font-size:1rem}
 #topAnalyse{border-color:color-mix(in srgb,var(--acc) 26%,var(--line))}
 #topAnalyse h2{justify-content:space-between}
 #quotaBadge{margin-left:auto}
 #obdStatus{display:inline-block;padding:7px 13px;border-radius:12px;margin-top:10px;background:rgba(255,255,255,.06);border:1px solid var(--line)}
-#accesList table button{margin:2px;padding:6px 10px;font-size:.78rem}
 #baseStats{padding:10px 13px;border-radius:var(--r2);margin-bottom:12px;background:rgba(0,229,255,.06);border:1px solid rgba(0,229,255,.2);font-family:ui-monospace,Menlo,monospace}
+.code-out{font-family:ui-monospace,Menlo,monospace;font-size:.8rem;word-break:break-all;background:rgba(0,230,118,.08);border:1px dashed rgba(0,230,118,.4);border-radius:10px;padding:10px;margin:10px 0;color:#69f0ae}
 #toasts{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);z-index:300;width:min(500px,94vw);pointer-events:none}
 .toast{pointer-events:auto;background:rgba(8,12,32,.97);border:1px solid var(--acc);border-radius:var(--r2);padding:13px 15px;margin-top:9px;font-size:.83rem;line-height:1.5;box-shadow:0 14px 44px rgba(0,0,0,.6);animation:toastIn .32s both}
 @keyframes toastIn{from{opacity:0;transform:translateY(18px)}}
-.kpi-row{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));margin:12px 0}
-.kpi{padding:12px;border-radius:var(--r2);text-align:center;background:rgba(255,255,255,.05);border:1px solid var(--line)}
-.kpi b{display:block;font-size:1.3rem;color:var(--acc);font-weight:900}
 .divider{height:1px;margin:16px 0;background:linear-gradient(90deg,transparent,var(--line2),transparent)}
 .empty{text-align:center;padding:26px 14px;color:var(--mut2);font-size:.82rem}
-@media (max-width:760px){:root{--head:112px}header{padding:9px 12px;gap:8px}.brand small{display:none}.status-strip{order:3;width:100%}.seg button{padding:6px 10px;font-size:.7rem}main{padding:14px 12px 70px}.card{padding:16px}.grid{grid-template-columns:repeat(auto-fit,minmax(140px,1fr))}.tabs .btn{min-width:calc(50% - 4px)}.mode-grid{grid-template-columns:1fr}table{font-size:.72rem}#accesList table{display:block;overflow-x:auto;white-space:nowrap}}
+@media (max-width:760px){:root{--head:112px}header{padding:9px 12px;gap:8px}.brand small{display:none}.status-strip{order:3;width:100%}.seg button{padding:6px 10px;font-size:.7rem}main{padding:14px 12px 70px}.card{padding:16px}.grid{grid-template-columns:repeat(auto-fit,minmax(140px,1fr))}.tabs .btn{min-width:calc(50% - 4px)}.mode-grid{grid-template-columns:1fr}table{font-size:.72rem}}
 @media print{body{background:#fff!important;color:#000!important}body>*:not(main){display:none!important}#bg,#wallpaper,#vignette,#bootScreen,#engineBanner,header,#toasts,.no-print,.tabs{display:none!important}.card,.hit,.firebox{background:#fff!important;color:#000!important;border:1px solid #999!important;box-shadow:none!important}h2,h3{color:#000!important}.small,small{color:#333!important}body.print-etude #topAnalyse,body.print-etude #v-recherche,body.print-etude #v-obd,body.print-etude #v-message{display:none!important}body.print-ctx #v-recherche,body.print-ctx #v-etude,body.print-ctx #v-obd,body.print-ctx #v-message{display:none!important}}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.001ms!important;transition-duration:.001ms!important}}
 </style>
@@ -177,7 +170,7 @@ td{padding:8px 7px;border-bottom:1px solid rgba(255,255,255,.08)}
   <b>⚠️ Moteur de données non chargé.</b>
   <span id="engineMsg">Vérification en cours…</span>
   <div class="row">
-    <button type="button" class="btn red small" id="engineForce">🧹 Forcer le rechargement (vide cache + SW)</button>
+    <button type="button" class="btn red small" id="engineForce">🧹 Forcer le rechargement</button>
     <button type="button" class="btn amber small" id="engineRetry">🔁 Réessayer</button>
   </div>
 </div>
@@ -185,7 +178,7 @@ td{padding:8px 7px;border-bottom:1px solid rgba(255,255,255,.08)}
 <header id="mainHeader">
   <div class="brand">
     <div class="brand-mark" aria-hidden="true">⚡</div>
-    <div><h1>KEV TECH &amp; FIRE</h1><small>Diagnostic · Incendie · Analyse juridique</small></div>
+    <div><h1>KEV TECH &amp; FIRE</h1><small>Diagnostic · Incendie · Analyse juridique · 100% local</small></div>
   </div>
   <div class="status-strip">
     <span class="badge live" id="netBadge">📶 réseau…</span>
@@ -203,33 +196,35 @@ td{padding:8px 7px;border-bottom:1px solid rgba(255,255,255,.08)}
   <section id="choice" class="card center">
     <div class="hero-emoji" aria-hidden="true">🏎️</div>
     <h2 style="justify-content:center">KEV TECH &amp; FIRE — by Kevin</h2>
-    <p class="lead">Diagnostic technique, étude incendie renforcée par véhicule, analyse juridique du contexte — bases fusionnées multi-projets.</p>
+    <p class="lead">Diagnostic technique, étude incendie renforcée par véhicule, analyse juridique du contexte. Fonctionne sans serveur : tout est local + fichiers publiés.</p>
     <div class="mode-grid">
       <button type="button" class="btn mode-card admin" id="btnModeAdmin"><span class="mode-ico">🛡️</span><b>OUVRIR EN ADMIN</b><small>Mot de passe à chaque ouverture</small></button>
-      <button type="button" class="btn mode-card tiers" id="btnModeTiers"><span class="mode-ico">👤</span><b>OUVRIR EN TIERS</b><small>Prénom + validation admin</small></button>
+      <button type="button" class="btn mode-card tiers" id="btnModeTiers"><span class="mode-ico">👤</span><b>OUVRIR EN TIERS</b><small>Code d'accès fourni par l'admin</small></button>
     </div>
     <div class="trust-row">
       <span class="trust-pill">🇫🇷 <b>RappelConso</b></span><span class="trust-pill">🇪 <b>Safety Gate</b></span>
-      <span class="trust-pill">🇺🇸 <b>NHTSA</b></span><span class="trust-pill">🔗 <b>5 projets</b></span><span class="trust-pill">⚖️ <b>Auto-Legal</b></span>
+      <span class="trust-pill">🇺🇸 <b>NHTSA (serveur)</b></span><span class="trust-pill">🔗 <b>5 projets</b></span><span class="trust-pill">⚖️ <b>Auto-Legal</b></span>
     </div>
   </section>
 
   <section id="gate" class="card center hidden">
     <div id="gateForm">
       <div class="state-ico">👤</div><h2 style="justify-content:center">Accès tiers</h2>
-      <p class="small">Indique ton prénom : l'admin reçoit une notification et valide en direct.</p>
+      <p class="small">Entre ton prénom et le <b>code d'accès</b> remis par l'administrateur.</p>
       <input id="prenom" maxlength="40" placeholder="Ton prénom" autocomplete="given-name">
-      <button type="button" class="btn" id="btnDemande">📨 Demander l'accès</button>
+      <input id="accessCode" placeholder="Code d'accès (ex : eyJwIjoi…)" autocomplete="off" style="font-family:ui-monospace,Menlo,monospace">
+      <button type="button" class="btn" id="btnDemande">🔓 Valider mon code</button>
+      <p class="small" style="margin-top:10px">Pas de code ? <a href="#" id="lnkAskCode">📧 Demander un code à l'admin</a></p>
     </div>
-    <div id="gateWait" class="hidden"><div class="state-ico">⏳</div><h2 style="justify-content:center">Demande transmise</h2><p>Bonjour <b id="waitName"></b>, en attente de validation.</p></div>
+    <div id="gateWait" class="hidden"><div class="state-ico">⏳</div><h2 style="justify-content:center">Demande envoyée</h2><p>Bonjour <b id="waitName"></b>, un email a été préparé pour l'administrateur. Dès réception de ton code, revale-le ici.</p><button type="button" class="btn ghost" id="btnBackForm">← J'ai mon code</button></div>
     <div id="gateOk" class="hidden"><div class="state-ico">✅</div><h2 style="justify-content:center">Accès autorisé</h2><p>Bienvenue <b id="okName"></b> !</p><button type="button" class="btn green" id="btnEntrer">🚗 Entrer</button></div>
-    <div id="gateKo" class="hidden"><div class="state-ico">🔒</div><h2 style="justify-content:center">Accès indisponible</h2><p id="koText"></p><button type="button" class="btn amber" id="btnReDemande">🔁 Nouvelle demande</button></div>
+    <div id="gateKo" class="hidden"><div class="state-ico">🔒</div><h2 style="justify-content:center">Accès refusé</h2><p id="koText"></p><button type="button" class="btn amber" id="btnReDemande">🔁 Réessayer</button></div>
     <div class="divider"></div><button type="button" class="btn ghost small" id="btnGateBack">← Changer de mode</button>
   </section>
 
   <section id="adminLogin" class="card center hidden">
     <div class="state-ico">🛡️</div><h2 style="justify-content:center">Connexion administrateur</h2>
-    <p class="small">Mot de passe vérifié côté serveur · champ vidé après chaque tentative.</p>
+    <p class="small">Vérification locale · champ vidé après chaque tentative · redemandé à chaque ouverture.</p>
     <input id="adminPwd" type="password" autocomplete="new-password" placeholder="Mot de passe administrateur" style="max-width:340px;margin:0 auto 10px;text-align:center">
     <div><button type="button" class="btn" id="btnAdminLogin">🔑 Entrer</button><button type="button" class="btn ghost" id="btnAdminBack">← Retour</button></div>
   </section>
@@ -305,38 +300,71 @@ td{padding:8px 7px;border-bottom:1px solid rgba(255,255,255,.08)}
 
     <div id="v-message" class="card hidden">
       <h2>✉️ Message à l'administrateur</h2>
+      <p class="small">Sans serveur : le message part par <b>email</b> (ou copie) vers l'adresse configurée par l'admin.</p>
       <div class="field"><label for="msgTexte">Message</label><textarea id="msgTexte" maxlength="2000" placeholder="Ta question / demande…"></textarea></div>
       <div class="chips" id="predMsg"></div>
-      <button type="button" class="btn" id="btnMsg">📨 Envoyer</button>
+      <button type="button" class="btn" id="btnMsg">📧 Envoyer par email</button>
+      <button type="button" class="btn ghost" id="btnMsgCopy">📋 Copier</button>
+      <h3>📤 Ma boîte d'envoi (locale)</h3><div id="outbox"></div>
     </div>
   </section>
 
   <section id="admin" class="hidden">
     <div class="tabs no-print">
-      <button type="button" class="btn ghost active" data-adm="acces">👥 Accès</button>
-      <button type="button" class="btn ghost" data-adm="msgs">✉️ Messages</button>
+      <button type="button" class="btn ghost active" data-adm="acces">🔑 Codes d'accès</button>
       <button type="button" class="btn ghost" data-adm="visuel">🖼️ Fond</button>
+      <button type="button" class="btn ghost" data-adm="contact">📮 Contact</button>
       <button type="button" class="btn ghost" data-adm="base">🗄️ Base &amp; MAJ</button>
       <button type="button" class="btn ghost" id="btnAdminToApp">🚗 Application</button>
     </div>
-    <div id="a-acces" class="card"><h2>👥 Demandes &amp; appareils — temps réel</h2><div id="accesList"><div class="empty"><div class="big">📡</div>Connexion temps réel…</div></div></div>
-    <div id="a-msgs" class="card hidden"><h2>✉️ Messages des tiers</h2><div id="msgList"><div class="empty"><div class="big">📭</div>Aucun message.</div></div></div>
+
+    <div id="a-acces" class="card">
+      <h2>🔑 Codes d'accès tiers (signés, sans serveur)</h2>
+      <p class="small">Génère un code par personne (prénom + durée). Le code est vérifié localement sur l'APK du tiers. La révocation est publiée dans <code>data/revoques.json</code>.</p>
+      <div class="grid">
+        <div class="field"><label for="gcPrenom">Prénom du tiers</label><input id="gcPrenom" placeholder="Kevin"></div>
+        <div class="field"><label for="gcJours">Validité (jours)</label><input id="gcJours" type="number" value="365" min="1" max="3650"></div>
+      </div>
+      <button type="button" class="btn green" id="btnGenCode">🎟️ Générer le code</button>
+      <div class="code-out hidden" id="genOut"></div>
+      <div class="no-print"><button type="button" class="btn ghost small" id="btnCopyCode">📋 Copier</button><button type="button" class="btn ghost small" id="btnShareCode">📤 Partager</button></div>
+      <div class="divider"></div>
+      <h3>Codes émis sur cet appareil</h3>
+      <div id="issuedList"></div>
+      <div class="divider"></div>
+      <h3>🚫 Révocation</h3>
+      <p class="small">Révoquer coupe l'accès du code sur toutes les APK dès la publication (ou au prochain check).</p>
+      <div id="revokeList"></div>
+      <button type="button" class="btn red" id="btnPublishRevoke">📤 Publier data/revoques.json</button>
+      <button type="button" class="btn ghost" id="btnExportRevoke">📥 Exporter revoques.json</button>
+    </div>
+
     <div id="a-visuel" class="card hidden">
-      <h2>🖼️ Fond d'écran &amp; opacité — diffusion temps réel</h2>
+      <h2>🖼️ Fond d'écran &amp; opacité — diffusion par fichier publié</h2>
       <div class="field"><label for="fileFond">Fond (photo réelle ≤ 700 Ko)</label><input type="file" id="fileFond" accept="image/*"></div>
       <div class="field" style="margin-top:12px"><label for="opacite">Opacité : <b id="opVal">60%</b></label>
-        <div class="range"><input type="range" id="opacite" min="0" max="100" value="60"><button type="button" class="btn small" id="btnOp">💾 Diffuser</button></div></div>
+        <div class="range"><input type="range" id="opacite" min="0" max="100" value="60"><button type="button" class="btn small" id="btnOp">💾 Appliquer</button></div></div>
       <div class="field" style="margin-top:12px"><label for="fileVoiture">Voiture animée (PNG détouré)</label><input type="file" id="fileVoiture" accept="image/*"></div>
-      <button type="button" class="btn red small" id="btnVisuelReset" style="margin-top:12px">🗑️ Visuel par défaut</button>
-      <div class="divider"></div><h3>🔗 Pont IA Auto-Legal (optionnel)</h3>
-      <div class="field"><label for="iaEndpoint">Endpoint IA</label><input id="iaEndpoint" placeholder="https://…/endpoint"></div>
-      <button type="button" class="btn ghost small" id="btnIa">💾 Enregistrer</button>
+      <div style="margin-top:12px">
+        <button type="button" class="btn green" id="btnPublishVisuel">📤 Publier data/visuel.json</button>
+        <button type="button" class="btn ghost" id="btnExportVisuel">📥 Exporter visuel.json</button>
+        <button type="button" class="btn red small" id="btnVisuelReset">🗑️ Réinitialiser</button>
+      </div>
+      <p class="small">Publier écrit le fichier dans ton dépôt (token GitHub). Toutes les APK le lisent au lancement et chaque heure.</p>
     </div>
+
+    <div id="a-contact" class="card hidden">
+      <h2>📮 Contact reçu par les tiers</h2>
+      <div class="field"><label for="contactEmail">Email admin (destinataire des messages tiers)</label><input id="contactEmail" type="email" placeholder="ton@email.fr"></div>
+      <button type="button" class="btn green" id="btnPublishContact">📤 Publier (inclus dans visuel.json)</button>
+      <p class="small">Les tiers voient un bouton « Envoyer par email » qui ouvre leur messagerie pré-remplie vers cette adresse.</p>
+    </div>
+
     <div id="a-base" class="card hidden">
       <h2>🗄️ Base &amp; mises à jour — admin seul</h2>
       <div id="baseStats" class="small">Chargement…</div>
       <div class="no-print"><button type="button" class="btn" id="btnReloadBase">🔄 Recharger la base publiée</button><button type="button" class="btn ghost" id="btnMajServeur">🚀 MAJ serveur maintenant</button></div>
-      <div class="field" style="margin-top:12px"><label for="ghPat">Token GitHub (scope workflow)</label><input id="ghPat" type="password" placeholder="ghp_… ou github_pat_…" autocomplete="off"></div>
+      <div class="field" style="margin-top:12px"><label for="ghPat">Token GitHub (scope workflow / contents)</label><input id="ghPat" type="password" placeholder="ghp_… ou github_pat_…" autocomplete="off"></div>
       <p class="small">MAJ auto 15 jours : NHTSA + RappelConso + Safety Gate + tes 5 sites + manual.json.</p>
       <div class="divider"></div><h3>➕ Fiche manuelle</h3>
       <div class="grid wide">
@@ -378,34 +406,28 @@ td{padding:8px 7px;border-bottom:1px solid rgba(255,255,255,.08)}
 })();
 </script>
 
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="legal.js"></script>
 <script src="app.js"></script>
+<script src="catalogue.js"></script>
+<script src="data-engine.js"></script>
 
 <script>
-/* Chargeur robuste du moteur : retry + cache-bust + watchdog + bannière */
 (function(){
   "use strict";
-  var tries=0;
-  var banner=document.getElementById("engineBanner");
-  function show(msg){ if(banner){ banner.classList.remove("hidden"); var m=document.getElementById("engineMsg"); if(m&&msg)m.textContent=msg; } }
-  function load(cb){
-    var s=document.createElement("script");
+  var tries=0,banner=document.getElementById("engineBanner");
+  function show(msg){if(banner){banner.classList.remove("hidden");var m=document.getElementById("engineMsg");if(m&&msg)m.textContent=msg;}}
+  function load(cb){var s=document.createElement("script");
     s.src="data-engine.js"+(tries>0?"?cb="+Date.now():"");
-    s.onload=function(){ if(cb)cb(); };
-    s.onerror=function(){ tries++; if(tries<3){ setTimeout(function(){load(cb);},500); } else { show("data-engine.js introuvable (404) ou bloqué par un cache périmé. Vérifie que le fichier est committé à la racine du dépôt, puis clique « Forcer »."); } };
-    document.body.appendChild(s);
-  }
-  function watchdog(){ setTimeout(function(){ if(!window.KEV_BOOTED){ if(tries<3){ tries++; load(watchdog); } else { show("Le moteur de données n'a pas démarré (fichier absent ou erreur). Clique « Forcer le rechargement »."); } } },2600); }
+    s.onload=function(){cb&&cb();};
+    s.onerror=function(){tries++;if(tries<3){setTimeout(function(){load(cb);},500);}else{show("data-engine.js introuvable (404) ou cache périmé. Vérifie que le fichier est committé, puis clique « Forcer ».");}};
+    document.body.appendChild(s);}
+  function watchdog(){setTimeout(function(){if(!window.KEV_BOOTED){if(tries<3){tries++;load(watchdog);}else{show("Le moteur de données n'a pas démarré. Clique « Forcer le rechargement ».");}}},2600);}
   load(watchdog);
   document.getElementById("engineForce").addEventListener("click",async function(){
-    try{ if("caches" in window){ var ks=await caches.keys(); for(var i=0;i<ks.length;i++) await caches.delete(ks[i]); }
-         if(navigator.serviceWorker){ var rs=await navigator.serviceWorker.getRegistrations(); for(var j=0;j<rs.length;j++) await rs[j].unregister(); } }catch(e){}
-    location.reload();
-  });
-  document.getElementById("engineRetry").addEventListener("click",function(){ tries=0; load(watchdog); });
+    try{if("caches" in window){var ks=await caches.keys();for(var i=0;i<ks.length;i++)await caches.delete(ks[i]);}
+        if(navigator.serviceWorker){var rs=await navigator.serviceWorker.getRegistrations();for(var j=0;j<rs.length;j++)await rs[j].unregister();}}catch(e){}
+    location.reload();});
+  document.getElementById("engineRetry").addEventListener("click",function(){tries=0;load(watchdog);});
 })();
 </script>
 </body>
