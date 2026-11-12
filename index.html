@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="tous">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>KEV TECH &amp; FIRE — by Kevin</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0b1026">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<style>
+:root{--bg:#0b1026;--card:#141b3dcc;--txt:#f2f5ff;--mut:#9aa7d8;--ok:#00e676;--warn:#ffc400;--bad:#ff1744;--r:16px}
+html[data-theme=tous]{--acc:#00e676;--acc2:#2979ff}
+html[data-theme=technique]{--acc:#00e5ff;--acc2:#7c4dff}
+html[data-theme=incendie]{--acc:#ff6d00;--acc2:#ff1744}
+*{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,Segoe UI,Roboto,sans-serif}
+body{background:var(--bg);color:var(--txt);min-height:100vh;overflow-x:hidden}
+/* ---- fond dynamique : ciel + route + voiture réelle qui se déplace ---- */
+#scene{position:fixed;inset:0;z-index:-1;overflow:hidden;background:linear-gradient(160deg,#0b1026,#1a237e 45%,#4a148c);background-size:cover;background-position:center}
+#scene::before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 70% 20%,color-mix(in srgb,var(--acc) 22%,transparent),transparent 60%);animation:pulse 7s ease-in-out infinite alternate}
+@keyframes pulse{to{opacity:.45;transform:scale(1.15)}}
+#road{position:absolute;left:0;right:0;bottom:0;height:92px;background:linear-gradient(#263238,#111)}
+#road::before{content:"";position:absolute;top:44px;left:-160px;right:0;height:6px;background:repeating-linear-gradient(90deg,#ffd740 0 70px,transparent 70px 160px);animation:route .5s linear infinite}
+@keyframes route{to{transform:translateX(-160px)}}
+#car{position:absolute;bottom:52px;left:-320px;width:300px;filter:drop-shadow(0 14px 10px #000a);animation:drive 14s linear infinite}
+#car img{width:100%;display:block;animation:bounce .35s ease-in-out infinite alternate}
+@keyframes drive{0%{transform:translateX(-10vw)}100%{transform:translateX(115vw)}}
+@keyframes bounce{to{transform:translateY(-2.5px)}}
+/* ---- UI ---- */
+header{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 14px;background:#0b1026d9;backdrop-filter:blur(8px);position:sticky;top:0;z-index:5;border-bottom:2px solid var(--acc)}
+header h1{font-size:1.05rem;background:linear-gradient(90deg,var(--acc),var(--acc2));-webkit-background-clip:text;background-clip:text;color:transparent;font-weight:900;letter-spacing:.5px}
+.badge{font-size:.72rem;padding:4px 9px;border-radius:20px;background:#ffffff18;border:1px solid #ffffff2d}
+.seg{display:flex;background:#ffffff12;border-radius:20px;padding:3px;margin-left:auto}
+.seg button{border:0;background:transparent;color:var(--mut);padding:5px 12px;border-radius:16px;font-weight:700;font-size:.78rem;cursor:pointer}
+.seg button.on{background:linear-gradient(90deg,var(--acc),var(--acc2));color:#04102a}
+main{max-width:980px;margin:0 auto;padding:14px}
+.card{background:var(--card);border:1px solid #ffffff22;border-radius:var(--r);padding:16px;margin-bottom:14px;backdrop-filter:blur(10px)}
+h2{font-size:1rem;margin-bottom:10px;color:var(--acc)}
+h3{font-size:.9rem;margin:8px 0 4px}
+input,select,textarea{width:100%;padding:11px;border-radius:12px;border:1px solid #ffffff30;background:#0d1330;color:var(--txt);font-size:.95rem;margin:4px 0}
+input:focus,textarea:focus{outline:2px solid var(--acc)}
+textarea{min-height:90px;resize:vertical}
+.btn{display:inline-block;border:0;border-radius:12px;padding:11px 16px;font-weight:800;cursor:pointer;background:linear-gradient(90deg,var(--acc),var(--acc2));color:#04102a;font-size:.9rem;margin:4px 4px 0 0}
+.btn.ghost{background:#ffffff14;color:var(--txt);border:1px solid #ffffff30}
+.btn.red{background:linear-gradient(90deg,#ff1744,#ff6d00);color:#fff}
+.btn.green{background:linear-gradient(90deg,#00e676,#00b0ff)}
+.btn:disabled{opacity:.4}
+.grid{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(210px,1fr))}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.tabs button{flex:1;min-width:110px}
+.hit{border-left:4px solid var(--acc);background:#0d1330;border-radius:12px;padding:12px;margin:8px 0}
+.hit.feu{border-left-color:#ff6d00}
+.hit .meta{font-size:.72rem;color:var(--mut);margin:3px 0}
+.tag{display:inline-block;font-size:.68rem;padding:2px 8px;border-radius:10px;background:#ffffff16;margin:2px 3px 2px 0}
+.tag.feu{background:#ff6d0033;color:#ffab40}.tag.crit{background:#ff174433;color:#ff8a80}
+.tag.ok{background:#00e67622;color:#69f0ae}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}
+.chips button{border:1px solid var(--acc);background:#0d1330;color:var(--acc);border-radius:14px;padding:4px 10px;font-size:.78rem;cursor:pointer}
+.chips label{border:1px solid #ffffff30;border-radius:14px;padding:5px 10px;font-size:.78rem;cursor:pointer;background:#0d1330}
+.chips input{width:auto;margin-right:4px}
+#sugs{position:relative}
+#sugs .list{position:absolute;top:100%;left:0;right:0;background:#0d1330;border:1px solid var(--acc);border-radius:12px;z-index:9;max-height:230px;overflow:auto}
+#sugs .list div{padding:9px 12px;cursor:pointer;border-bottom:1px solid #ffffff12}
+#sugs .list div:hover{background:#ffffff14}
+#toasts{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);z-index:99;width:min(94vw,480px)}
+.toast{background:#0d1330f2;border:1px solid var(--acc);border-radius:12px;padding:12px;margin-top:8px;font-size:.85rem;box-shadow:0 8px 30px #000a}
+.hidden{display:none!important}
+.center{text-align:center;padding:36px 10px}
+.big{font-size:3rem}
+table{width:100%;border-collapse:collapse;font-size:.8rem}
+td,th{padding:7px;border-bottom:1px solid #ffffff18;text-align:left}
+.progress{height:8px;background:#ffffff18;border-radius:6px;overflow:hidden;margin:8px 0}
+.progress div{height:100%;width:0;background:linear-gradient(90deg,var(--acc),var(--acc2));transition:width .3s}
+small,.small{font-size:.72rem;color:var(--mut)}
+a{color:var(--acc)}
+@media print{body>*:not(main),#scene,header,.no-print{display:none!important}.card{background:#fff;color:#000;border:1px solid #999}.hit{background:#fff;color:#000}h2{color:#000}}
+</style>
+</head>
+<body>
+<div id="scene"><div id="road"></div><div id="car"><img id="carImg" alt="véhicule"></div></div>
+
+<header>
+  <h1>⚡ KEV TECH &amp; FIRE</h1>
+  <span class="badge" id="netBadge">…</span>
+  <span class="badge" id="baseBadge">base…</span>
+  <div class="seg" id="themeSeg">
+    <button data-t="tous" class="on">Tous</button>
+    <button data-t="technique">🔧 Technique</button>
+    <button data-t="incendie">🔥 Incendie</button>
+  </div>
+</header>
+
+<main>
+  <!-- ===== ACCÈS TIERS ===== -->
+  <section id="gate" class="card center">
+    <div class="big">🔐</div>
+    <h2>Accès à l'application</h2>
+    <p class="small">Indique ton prénom : l'administrateur reçoit ta demande par notification et valide en temps réel.</p>
+    <div id="gateForm">
+      <input id="prenom" maxlength="40" placeholder="Ton prénom" autocomplete="off">
+      <button class="btn" id="btnDemande">📨 Demander l'accès</button>
+    </div>
+    <div id="gateWait" class="hidden"><div class="big">⏳</div><p>Demande envoyée, <b id="waitName"></b>. En attente de validation admin…</p><button class="btn ghost" id="btnAnnuler">↩️ Annuler</button></div>
+    <div id="gateOk" class="hidden"><div class="big">✅</div><p>Accès autorisé. Bienvenue <b id="okName"></b> !</p><button class="btn green" id="btnEntrer">🚗 Entrer</button></div>
+    <div id="gateKo" class="hidden"><div class="big">❌</div><p id="koText">Accès refusé.</p><button class="btn" id="btnReDemande">🔁 Nouvelle demande</button></div>
+    <p style="margin-top:18px"><button class="btn ghost" id="btnGoAdmin">🛡️ Espace admin</button></p>
+  </section>
+
+  <!-- ===== LOGIN ADMIN ===== -->
+  <section id="adminLogin" class="card center hidden">
+    <div class="big">🛡️</div><h2>Connexion administrateur</h2>
+    <input id="adminPwd" type="password" autocomplete="new-password" placeholder="Mot de passe administrateur">
+    <button class="btn" id="btnAdminLogin">🔑 Entrer</button>
+    <button class="btn ghost" id="btnAdminBack">← Retour</button>
+    <p class="small">Champ vidé après chaque tentative. Mot de passe vérifié côté serveur (Firebase Auth).</p>
+  </section>
+
+  <!-- ===== APPLICATION TIERS ===== -->
+  <section id="app" class="hidden">
+    <div class="tabs no-print">
+      <button class="btn ghost" data-nav="recherche">🔎 Recherche</button>
+      <button class="btn ghost" data-nav="etude">🧠 Étude de cas</button>
+      <button class="btn ghost" data-nav="obd">🔵 OBD Bluetooth</button>
+      <button class="btn ghost" data-nav="message">✉️ Message admin</button>
+    </div>
+
+    <div id="v-recherche" class="card">
+      <h2>Recherche prédictive unifiée <small>(tes 4 bases + NHTSA + RappelConso + Safety Gate)</small></h2>
+      <div id="sugs"><input id="q" placeholder="Ex : 3008 courroie, P0016, EGR, fuite huile turbo…" autocomplete="off"><div class="list hidden" id="qList"></div></div>
+      <div class="grid">
+        <select id="fMarque"><option value="">Toutes marques</option></select>
+        <select id="fSys"><option value="">Tous systèmes</option></select>
+        <select id="fGrav"><option value="">Toutes gravités</option><option>critique</option><option>eleve</option><option>modere</option></select>
+      </div>
+      <div id="results"></div>
+    </div>
+
+    <div id="v-etude" class="card hidden">
+      <h2>🧠 Étude de cas — panne → causes → conséquences → risque d'incendie</h2>
+      <div class="grid">
+        <div><label class="small">Marque</label><input id="cMarque" list="dlMarques" placeholder="Peugeot"></div>
+        <div><label class="small">Modèle</label><input id="cModele" list="dlModeles" placeholder="3008"></div>
+        <div><label class="small">Motorisation</label><input id="cMoteur" list="dlMoteurs" placeholder="1.2 PureTech"></div>
+        <div><label class="small">Puissance (ch)</label><input id="cPuiss" type="number" placeholder="130"></div>
+        <div><label class="small">Année</label><input id="cAnnee" type="number" placeholder="2018"></div>
+        <div><label class="small">Énergie</label><select id="cEnergie"><option value="">—</option><option>essence</option><option>diesel</option><option>hybride</option><option>electrique</option></select></div>
+      </div>
+      <datalist id="dlMarques"></datalist><datalist id="dlModeles"></datalist><datalist id="dlMoteurs"></datalist>
+      <h3>Constatations (QCM — coche ce qui est constaté)</h3>
+      <div class="chips" id="qcm"></div>
+      <label class="small"><input type="checkbox" id="dtcLu" style="width:auto"> Codes défauts (DTC) lus sur le véhicule</label>
+      <input id="cDtc" class="hidden" placeholder="P0016, P0521… (séparés par des virgules)">
+      <h3>Contexte libre (rédaction prédictive fiable — suggestions issues de la base)</h3>
+      <textarea id="cContexte" placeholder="Décris le contexte : circonstances, bruits, odeurs, historique d'entretien, sinistre…"></textarea>
+      <div class="chips" id="predCtx"></div>
+      <label class="small"><input type="checkbox" id="cLitige" style="width:auto"> Contexte de litige → ajouter l'analyse juridique</label><br>
+      <button class="btn" id="btnAnalyser">⚙️ Lancer l'étude</button>
+      <button class="btn ghost no-print" id="btnPrint">🖨️ Rapport PDF / impression</button>
+      <button class="btn ghost no-print" id="btnExportEtude">📤 Export JSON</button>
+      <div id="rapport"></div>
+      <h3 class="no-print">🕘 Historique des études</h3><div id="histo" class="no-print"></div>
+    </div>
+
+    <div id="v-obd" class="card hidden">
+      <h2>🔵 Lecture des défauts via Bluetooth (ELM327 BLE)</h2>
+      <p class="small">Adaptateurs BLE compatibles (ex. Vgate iCar Pro BLE, OBDLink MX+ BLE). Contact mis. Les adaptateurs Bluetooth classique ne sont pas accessibles depuis une application web.</p>
+      <button class="btn" id="btnObd">🔗 Connecter l'adaptateur</button>
+      <button class="btn ghost" id="btnObdRead" disabled>📥 Lire les codes défauts</button>
+      <p id="obdStatus" class="small">Non connecté.</p>
+      <div id="obdResult"></div>
+    </div>
+
+    <div id="v-message" class="card hidden">
+      <h2>✉️ Message à l'administrateur</h2>
+      <textarea id="msgTexte" maxlength="2000" placeholder="Ta question, ta demande, ton retour…"></textarea>
+      <div class="chips" id="predMsg"></div>
+      <button class="btn" id="btnMsg">📨 Envoyer</button>
+    </div>
+  </section>
+
+  <!-- ===== ADMIN ===== -->
+  <section id="admin" class="hidden">
+    <div class="tabs">
+      <button class="btn ghost" data-adm="acces">👥 Accès</button>
+      <button class="btn ghost" data-adm="msgs">✉️ Messages</button>
+      <button class="btn ghost" data-adm="visuel">🖼️ Fond</button>
+      <button class="btn ghost" data-adm="base">🗄️ Base &amp; MAJ</button>
+    </div>
+    <div id="a-acces" class="card"><h2>👥 Demandes &amp; appareils (temps réel)</h2><div id="accesList"></div></div>
+    <div id="a-msgs" class="card hidden"><h2>✉️ Messages des tiers</h2><div id="msgList"></div></div>
+    <div id="a-visuel" class="card hidden">
+      <h2>🖼️ Fond d'écran &amp; voiture — diffusion temps réel à tous les tiers</h2>
+      <label class="small">Fond d'écran (photo réelle, compressé automatiquement ≤ 700 Ko)</label>
+      <input type="file" id="fileFond" accept="image/*">
+      <label class="small">Voiture qui se déplace (PNG détouré transparent conseillé)</label>
+      <input type="file" id="fileVoiture" accept="image/*">
+      <button class="btn red" id="btnVisuelReset">🗑️ Rétablir le visuel par défaut</button>
+      <p class="small">La diffusion est instantanée sur toutes les APK connectées (Firestore temps réel).</p>
+    </div>
+    <div id="a-base" class="card hidden">
+      <h2>🗄️ Base technique &amp; mises à jour</h2>
+      <div id="baseStats" class="small"></div>
+      <button class="btn" id="btnReloadBase">🔄 Recharger la dernière base publiée</button>
+      <button class="btn ghost" id="btnMajServeur">🚀 Lancer la MAJ serveur maintenant</button>
+      <input id="ghPat" type="password" placeholder="Token GitHub (workflow) — stocké uniquement sur cet appareil" autocomplete="off">
+      <p class="small">MAJ auto programmée tous les 15 jours (GitHub Actions). Le bouton 🚀 déclenche la même chose immédiatement.</p>
+      <h3>➕ Ajout manuel d'une fiche</h3>
+      <div class="grid">
+        <input id="mTitre" placeholder="Défaut / titre"><input id="mMarque" placeholder="Marque(s)">
+        <input id="mModele" placeholder="Modèle(s)"><input id="mMoteur" placeholder="Motorisation">
+        <input id="mAnnees" placeholder="Années ex 2015-2022"><input id="mDtc" placeholder="DTC ex P0016,P0521">
+      </div>
+      <textarea id="mMeca" placeholder="Mécanisme / causes"></textarea>
+      <textarea id="mConseq" placeholder="Conséquences (une par ligne)"></textarea>
+      <label class="small"><input type="checkbox" id="mFeu" style="width:auto"> Risque d'incendie associé</label>
+      <input id="mUrl" placeholder="Source (URL)">
+      <button class="btn" id="btnAddFiche">💾 Ajouter à la base locale</button>
+      <h3>📥 Import / 📤 Export JSON</h3>
+      <input type="file" id="fileImport" accept=".json,application/json">
+      <button class="btn ghost" id="btnExportOverlay">📤 Exporter mes ajouts (manual.json à.committer dans data/)</button>
+      <p class="small">Pour intégrer durablement tes ajouts : exporte puis dépose le fichier sous <code>data/manual.json</code> dans le repo — la MAJ auto le fusionne.</p>
+      <button class="btn red" id="btnLogout">🚪 Déconnexion admin</button>
+    </div>
+  </section>
+</main>
+<div id="toasts"></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
