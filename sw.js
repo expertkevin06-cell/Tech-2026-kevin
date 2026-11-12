@@ -1,5 +1,5 @@
-const CACHE="kevtf-v3";
-const SHELL=["./","index.html","app.js","legal.js","manifest.webmanifest","icon.svg","data/index.json","data/seed.json",
+const CACHE="kevtf-v4";
+const SHELL=["./","index.html","app.js","legal.js","catalogue.js","manifest.webmanifest","icon.svg","data/index.json","data/seed.json",
 "https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js","https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js","https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"];
 self.addEventListener("install",e=>{e.waitUntil(caches.open(CACHE).then(c=>Promise.allSettled(SHELL.map(u=>c.add(u)))).then(()=>self.skipWaiting()));});
 self.addEventListener("activate",e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()));});
