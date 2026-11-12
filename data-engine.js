@@ -1,16 +1,21 @@
 /* ============================================================================
-   KEV TECH & FIRE — DATA ENGINE v5
+   KEV TECH & FIRE — DATA ENGINE v6  (fichier UNIQUE, autonome, SANS backend)
    • window.KEV_BOOTED posé à la 1ʳ ligne (watchdog index.html)
-   • Ré-assertion toutes les 1,2 s : aucune course ne peut écraser la base fusionnée
-   • Catalogue massif embarqué + auto-construction (RappelConso + 5 sites + cache IndexedDB)
-   • Autovérification APK (badge 🩺) + réparation GitHub 404
+   • Catalogue massif embarqué (hors ligne) : marques/modèles/motorisations/puissances
+   • Auto-construction au lancement : cache IndexedDB (ou mémoire) + data/ du dépôt
+     + récolte arrière-plan (tes 5 sites + RappelConso officiel)
+   • Ré-assertion 1,2 s : aucune charge async ne peut écraser la base fusionnée
+   • Autovérification APK v6 : 12 checks SANS Firebase, IndexedDB = avertissement
+     (repli mémoire), NHTSA = information « via serveur » (CORS client bloqué = normal)
+   • Réparation GitHub 404 (détection repo/branche/workflow + installation via API)
    ============================================================================ */
 window.KEV_BOOTED = true;
 (() => {
 "use strict";
-window.addEventListener("error", e => { try { if (window.KEV_BOOTED && typeof log === "function") log("❌ Runtime : " + e.message); } catch (_) {} });
+window.addEventListener("error", e => { try { if (window.KEV_BOOTED) log("❌ Runtime : " + e.message); } catch (_) {} });
 
-const EMB={
+/* ============================ 1. CATALOGUE EMBARQUÉ ============================ */
+const EMB = {
 marques:"Abarth|Aiways|Alfa Romeo|Alpine|Aston Martin|Audi|Bentley|BMW|BYD|Cadillac|Chery|Chevrolet|Chrysler|Citroën|Cupra|Dacia|Daihatsu|Dodge|DS|Ferrari|Fiat|Fisker|Ford|Geely|Genesis|GMC|Honda|Hongqi|Hyundai|Infiniti|Isuzu|Jaecoo|Jaguar|Jeep|Kia|KTM|Lada|Lamborghini|Lancia|Land Rover|Leapmotor|Lexus|Lincoln|Lotus|Lucid|Mahindra|Maserati|Mazda|McLaren|Mercedes-Benz|MG|Mini|Mitsubishi|Nio|Nissan|Omoda|Opel|Ora|Peugeot|Polestar|Porsche|RAM|Renault|Rivian|Rolls-Royce|Saab|SEAT|Seres|Skoda|Smart|SsangYong|Subaru|Suzuki|Tata|Tesla|Toyota|VinFast|Volkswagen|Volvo|Xpeng|Zeekr".split("|"),
 modeles:{
 "Skoda":["Citigo","Elroq","Enyaq","Enyaq Coupé","Fabia","Kamiq","Karoq","Kodiaq","Octavia","Octavia Combi","Rapid","Roomster","Scala","Superb","Superb Combi","Yeti"],
@@ -125,6 +130,7 @@ versions:[
 {marque:"Porsche",modele:"Taycan",energie:"electrique",annees:[2019,2027],v:[["",300,408,"79 kWh"],["4S",390,530,"93 kWh"],["Turbo",650,884,"93 kWh"]]},
 {marque:"Polestar",modele:"2",energie:"electrique",annees:[2020,2027],v:[["Standard Range",200,272,"69 kWh"],["Long Range",220,299,"82 kWh"],["Long Range Dual",350,476,"82 kWh"]]}]};
 
+/* ============================ 2. Constantes & état ============================ */
 const SITES=[
  {id:"techkevin",name:"TechKevin 2026",url:"https://expertkevin06-cell.github.io/techkevin2026/"},
  {id:"mytech",name:"My Tech by Kevin",url:"https://expertkevin06-cell.github.io/my-tech-by-kevin/"},
@@ -133,7 +139,6 @@ const SITES=[
  {id:"autodiag",name:"Auto Diagnostic",url:"https://expertkevin06-cell.github.io/auto-diagnostic/"}];
 const PROBES=["data/catalogue.json","catalogue.json","data/vehicules.json","data/base.json","base.json","data/pannes.json","data/db.json","data/index.json","asset-manifest.json","data/export.json","export.json"];
 const WORKFLOW_YAML="name: MAJ bases techniques\non:\n  schedule: [{cron: \"0 3 1,16 * *\"}]\n  workflow_dispatch:\n  push:\n    paths: [\"data/catalogue_source.json\",\"data/manual.json\",\"scripts/update_bases.py\"]\npermissions: {contents: write}\nconcurrency: {group: maj-bases, cancel-in-progress: false}\njobs:\n  rapide:\n    runs-on: ubuntu-latest\n    timeout-minutes: 25\n    steps:\n      - uses: actions/checkout@v4\n      - uses: actions/setup-python@v5\n        with: {python-version: \"3.12\"}\n      - run: pip install pillow -q && python scripts/make_icon.py || true\n      - env: {PHASE: rapide}\n        run: python scripts/update_bases.py\n      - run: |\n          git config user.name \"kev-bot\"\n          git config user.email \"actions@users.noreply.github.com\"\n          git add data\n          git add icons || true\n          git diff --cached --quiet || git commit -m \"MAJ rapide bases + catalogue\"\n          git pull --rebase origin main || true\n          git push\n  nhtsa:\n    needs: rapide\n    runs-on: ubuntu-latest\n    timeout-minutes: 320\n    continue-on-error: true\n    steps:\n      - uses: actions/checkout@v4\n        with: {ref: main}\n      - uses: actions/setup-python@v5\n        with: {python-version: \"3.12\"}\n      - env: {PHASE: nhtsa}\n        run: python scripts/update_bases.py\n      - run: |\n          git config user.name \"kev-bot\"\n          git config user.email \"actions@users.noreply.github.com\"\n          git add data\n          git diff --cached --quiet || git commit -m \"MAJ NHTSA\"\n          git pull --rebase origin main || true\n          git push\n";
-
 const D=id=>document.getElementById(id);
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 const N=s=>(s||"").toString().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g," ").trim();
@@ -150,15 +155,26 @@ const ENGINE=/^\d[.,]\d|kwh|e-?tech|e-?tron|electric|electri|hybrid|phev|hev\b|t
 const BRANDS=new Set(EMB.marques.map(N));
 const get=(o,...ks)=>{for(const k of ks){const f=Object.keys(o||{}).find(x=>N(x).replace(/ /g,"")===N(k).replace(/ /g,""));if(f&&o[f]!=null&&o[f]!=="")return o[f];}return "";};
 
-const IDB={db:null,
- open(){return new Promise(res=>{if(this.db)return res(this.db);if(!window.indexedDB)return res(null);
-  const r=indexedDB.open("kevtf-engine",5);
-  r.onupgradeneeded=()=>{const d=r.result;if(!d.objectStoreNames.contains("kv"))d.createObjectStore("kv");};
-  r.onsuccess=()=>{this.db=r.result;res(this.db);};r.onerror=()=>res(null);});},
- async get(k){const d=await this.open();if(!d)return null;return new Promise(res=>{const t=d.transaction("kv").objectStore("kv").get(k);t.onsuccess=()=>res(t.result||null);t.onerror=()=>res(null);});},
- async set(k,v){const d=await this.open();if(!d)return false;return new Promise(res=>{const t=d.transaction("kv","readwrite").objectStore("kv").set(v,k);t.onsuccess=()=>res(true);t.onerror=()=>res(false);});},
- async del(k){const d=await this.open();if(!d)return false;return new Promise(res=>{const t=d.transaction("kv","readwrite").objectStore("kv").delete(k);t.onsuccess=()=>res(true);t.onerror=()=>res(false);});}};
+/* ============================ 3. Stockage : IndexedDB + repli mémoire ============================ */
+const IDB={db:null,mode:"idb",mem:new Map(),
+ open(){ if(this.db||this.mode==="memory")return Promise.resolve(this.db);
+  return new Promise(res=>{ if(!window.indexedDB){this.mode="memory";return res(null);}
+   try{ const r=indexedDB.open("kevtf-engine",5);
+    r.onupgradeneeded=()=>{const d=r.result;if(!d.objectStoreNames.contains("kv"))d.createObjectStore("kv");};
+    r.onsuccess=()=>{this.db=r.result;res(this.db);};
+    r.onerror=()=>{this.mode="memory";res(null);};
+    r.onblocked=()=>{this.mode="memory";res(null);};
+   }catch(e){this.mode="memory";res(null);} });},
+ async get(k){ if(this.mode==="memory"||!this.db&&!(await this.open()))return this.mem.has(k)?this.mem.get(k):null;
+  return new Promise(res=>{try{const t=this.db.transaction("kv").objectStore("kv").get(k);t.onsuccess=()=>res(t.result||null);t.onerror=()=>res(this.mem.has(k)?this.mem.get(k):null);}catch(e){res(this.mem.has(k)?this.mem.get(k):null);}});},
+ async set(k,v){ this.mem.set(k,v); if(this.mode==="memory")return true;
+  const d=await this.open(); if(!d)return true;
+  return new Promise(res=>{try{const t=d.transaction("kv","readwrite").objectStore("kv").set(v,k);t.onsuccess=()=>res(true);t.onerror=()=>res(true);}catch(e){res(true);}});},
+ async del(k){ this.mem.delete(k); if(this.mode==="memory")return true;
+  const d=await this.open(); if(!d)return true;
+  return new Promise(res=>{try{const t=d.transaction("kv","readwrite").objectStore("kv").delete(k);t.onsuccess=()=>res(true);t.onerror=()=>res(true);}catch(e){res(true);}});}};
 
+/* ============================ 4. Structures catalogue ============================ */
 function newCat(){return{marques:new Set(),modeles:new Map(),motorisations:new Set(),versions:new Map(),powers:new Set()};}
 function addModel(c,b,m){b=String(b||"").trim();m=String(m||"").trim();if(!b||!m||m.length>60)return;if(!c.modeles.has(b))c.modeles.set(b,new Set());c.modeles.get(b).add(m);c.marques.add(b);}
 function addVersion(c,o){const b=String(get(o,"marque","brand","make")||"").split("/")[0].trim();const m=String(get(o,"modele","model","modèle")||"").trim();if(!b||!m)return;addModel(c,b,m);
@@ -189,6 +205,7 @@ function catMerge(a,b){const c=newCat();
    (v.v||[]).forEach(r=>{if(!t.v.some(z=>N(z[0])===N(r[0])&&z[2]===r[2]))t.v.push(r);});}}
  return c;}
 
+/* ============================ 5. Normalisation universelle ============================ */
 function isFault(o){const hasT=!!get(o,"defaut","titre","title","panne","libelle","fault","failure","nom","summary");
  const hasK=!!get(o,"mecanisme","mechanisme","cause","causes","consequences","symptomes","indices","systeme","dtc","campagne");
  return hasT&&hasK&&Object.keys(o).length>2;}
@@ -237,6 +254,7 @@ function normalizeAny(input,src){const c=newCat(),entries=[],seen=new Set();
    if(v&&typeof v==="object")walk(v,{...my,key:k},depth+1);}};
  walk(input,{},0);return{entries,cat:c};}
 
+/* ============================ 6. Extraction bundles ============================ */
 function* jsonArrays(txt){const lim=Math.min(txt.length,4_000_000);let n=0;
  for(let i=0;i<lim-1;i++){if(txt[i]!=="["||(txt[i+1]!=="{"&&txt[i+1]!=='"'&&txt[i+1]!=="["))continue;
   let depth=0,str=false,esc=false;
@@ -269,6 +287,7 @@ async function harvestSite(site){const blobs=[];const html=await fetchText(site.
   await sleep(0);}
  return{entries,cat:c};}
 
+/* ============================ 7. Fusion + application ============================ */
 let ENGINE_CAT=newCat(),ENGINE_ENTRIES=[],VEH_INDEX=[],LOG=[],SRC={};
 function log(m){LOG.unshift({t:new Date().toLocaleTimeString("fr-FR"),m});LOG=LOG.slice(0,200);paintLog();}
 function paintLog(){const el=D("de-log");if(el)el.innerHTML=LOG.map(x=>`<div><span>${E(x.t)}</span> ${E(x.m)}</div>`).join("");}
@@ -276,7 +295,7 @@ function counts(){return{fiches:(typeof BASE!=="undefined"?BASE:[]).length,marqu
 function paintStats(){const c=counts();
  const s=D("de-stats");if(s)s.innerHTML=`<div><b>${c.fiches}</b><small>fiches</small></div><div><b>${c.marques}</b><small>marques</small></div><div><b>${c.modeles}</b><small>modèles</small></div><div><b>${c.mot}</b><small>motorisations</small></div><div><b>${c.ver}</b><small>versions</small></div><div><b>${c.pow}</b><small>puissances</small></div>`;
  const b=D("baseBadge");if(b)b.textContent=`🗄️ ${c.fiches} fiches • ${c.marques} marques • ${c.modeles} modèles • ${typeof VERSION!=="undefined"?VERSION:""}`;
- const st=D("baseStats");if(st)st.textContent=`Version ${typeof VERSION!=="undefined"?VERSION:""} • ${c.fiches} fiches • ${c.marques} marques • ${c.modeles} modèles • ${c.mot} motorisations • ${c.ver} versions • ${c.pow} puissances`;}
+ const st=D("baseStats");if(st)st.textContent=`Version ${typeof VERSION!=="undefined"?VERSION:""} • ${c.fiches} fiches • ${c.marques} marques • ${c.modeles} modèles • ${c.mot} motorisations • ${c.ver} versions • ${c.pow} puissances • stockage ${IDB.mode==="memory"?"mémoire":"IndexedDB"}`;}
 function applyData(entries,cat,ver){const map=new Map();
  (typeof BASE!=="undefined"?BASE:[]).forEach(e=>map.set(sig(e),e));
  entries.forEach(e=>map.set(sig(e),e));
@@ -287,21 +306,19 @@ function applyData(entries,cat,ver){const map=new Map();
  try{fillFilters();fillDatalists();renderResults();}catch(_){}
  buildVehicleIndex();paintStats();}
 async function persist(){await IDB.set("snapshot",{entries:BASE,catalogue:CATALOG,version:VERSION,ts:Date.now()});}
-
-/* Ré-assertion : empêche TOUT écrasement par une charge async concurrente */
 function reassert(){try{
  if(typeof CATALOG==="undefined"||!ENGINE_CAT||!ENGINE_CAT.marques.size)return;
  const curM=CATALOG.marques.length,wantM=ENGINE_CAT.marques.size;
  const curB=(typeof BASE!=="undefined"?BASE:[]).length,wantB=ENGINE_ENTRIES.length;
  if(curM<wantM||curB<wantB){
-   CATALOG=catPlain(ENGINE_CAT);
-   if(curB<wantB)BASE=ENGINE_ENTRIES.slice();
-   try{indexBase();}catch(_){}
-   try{fillFilters();fillDatalists();}catch(_){}
-   buildVehicleIndex();
- }}catch(_){}
+  CATALOG=catPlain(ENGINE_CAT);
+  if(curB<wantB)BASE=ENGINE_ENTRIES.slice();
+  try{indexBase();}catch(_){}
+  try{fillFilters();fillDatalists();}catch(_){}
+  buildVehicleIndex();}}catch(_){}
  paintStats();}
 
+/* ============================ 8. Sources officielles ============================ */
 async function rappelConso(){const base="https://data.economie.gouv.fr/api/explore/v2.1/catalog/datasets/rappelconso-v2-gtin-espaces/records";
  const where='categorie_produit="automobiles et moyens de déplacement"';let off=0,out=[];
  while(off<6000){const u=base+"?"+new URLSearchParams({where,limit:100,offset:off,order_by:"date_publication desc"});
@@ -328,6 +345,7 @@ async function nhtsaVehicle(v){if(!v.marque||!v.modele||!navigator.onLine)return
    campagne:r.NHTSACampaignNumber||"",url:"https://www.nhtsa.gov/recalls?nhtsaId="+(r.NHTSACampaignNumber||""),
    date:(r.ReportReceivedDate||"").split("/").reverse().join("-")};});}
 
+/* ============================ 9. GitHub (réparation 404) ============================ */
 function ghTarget(){const m=(D("de-repo")?.value||localStorage.getItem("kevo_repo")||"").trim();
  if(m.includes("/"))return{owner:m.split("/")[0],repo:m.split("/")[1]};
  const host=location.hostname,path=location.pathname.split("/").filter(Boolean);
@@ -358,7 +376,7 @@ async function ghRepair(){const token=ghToken();if(!token){log("❌ Token manqua
  const put=await ghFetch(`/repos/${d.owner}/${d.repo}/contents/${path}`,{method:"PUT",token,body:{message:"KEV — installe/répare le workflow MAJ",content:b64(WORKFLOW_YAML),branch:d.branch,...(sha?{sha}:{})}});
  if(!put.ok){log(`❌ Écriture workflow HTTP ${put.status} : ${put.text.slice(0,200)}`);return;}
  log("✅ Workflow installé sur "+d.branch);await sleep(2200);await ghDispatch();}
-async function ghDispatch(){const token=ghToken();if(!token){log("❌ Token manquant (classic repo+workflow · fine-granted Contents R/W + Actions R/W)");return;}
+async function ghDispatch(){const token=ghToken();if(!token){log("❌ Token manquant (classic repo+workflow · fine-grained Contents R/W + Actions R/W)");return;}
  const d=await ghDetect();if(!d)return;
  if(!d.workflow){log("⚠️ Aucun workflow — clique « Réparer le workflow »");return;}
  const r=await ghFetch(`/repos/${d.owner}/${d.repo}/actions/workflows/${encodeURIComponent(d.workflow.path.split("/").pop())}/dispatches`,{method:"POST",token,body:{ref:d.branch}});
@@ -367,6 +385,7 @@ async function pollRuns(d){for(let i=0;i<20;i++){await sleep(15000);
  const r=await ghFetch(`/repos/${d.owner}/${d.repo}/actions/workflows/${encodeURIComponent(d.workflow.path.split("/").pop())}/runs?per_page=1`,{token:ghToken()});
  if(r.ok){const run=(r.json.workflow_runs||[])[0];if(run){log(`⏳ Run ${run.status} · ${run.conclusion||"…"}`);if(run.status==="completed"){if(run.conclusion==="success"){log("✅ MAJ terminée — rechargement");await bootData(true);}return;}}}}}
 
+/* ============================ 10. Récolte complète ============================ */
 let harvesting=false;
 function setProgress(p){const e=D("de-prog");if(e)e.style.width=Math.max(0,Math.min(100,p))+"%";const t=D("de-prog-txt");if(t)t.textContent=Math.round(p)+"%";}
 async function harvestAll(force=false){if(harvesting)return;
@@ -385,6 +404,7 @@ async function harvestAll(force=false){if(harvesting)return;
  const k=counts();log(`🎉 Base fusionnée : ${k.fiches} fiches · ${k.marques} marques · ${k.modeles} modèles`);
  harvesting=false;T(`🛰️ Base massive prête : ${k.fiches} fiches · ${k.marques} marques.`);runSelfCheck();}
 
+/* ============================ 11. Import universel ============================ */
 async function importFiles(files){const c=newCat();let all=[],count=0;
  for(const f of files){log(`📥 Import ${f.name}`);const ext=(f.name.split(".").pop()||"").toLowerCase();
   try{
@@ -408,6 +428,7 @@ async function importFiles(files){const c=newCat();let all=[],count=0;
  applyData(all,c,"import-"+new Date().toISOString().slice(0,10));await persist();
  T(`📥 Import terminé : ${count} éléments.`);return{entries:all,cat:c,count};}
 
+/* ============================ 12. Recherche véhicules ============================ */
 function buildVehicleIndex(){const c=ENGINE_CAT;const seen=new Set();VEH_INDEX=[];
  for(const v of c.versions.values()){const k=N(v.marque)+"|"+N(v.modele);if(seen.has(k))continue;seen.add(k);VEH_INDEX.push({...v,_h:N([v.marque,v.modele,v.energie,(v.v||[]).map(x=>x[0]).join(" ")].join(" "))});}
  for(const[b,ms]of c.modeles)for(const m of ms){const k=N(b)+"|"+N(m);if(seen.has(k))continue;seen.add(k);VEH_INDEX.push({marque:b,modele:m,energie:"",annees:null,v:[],_h:N(b+" "+m)});}}
@@ -446,33 +467,39 @@ function overrideSearch(){if(typeof window.renderResults!=="function")return;
   const hits=[...terms].filter(x=>N(x).startsWith(n)||N(x).includes(n)).slice(0,10);
   box.innerHTML=hits.map(x=>`<div data-v="${E(x)}">${E(x)}</div>`).join("");box.classList.toggle("hidden",!hits.length);};}
 
+/* ============================ 13. AUTOVÉRIFICATION v6 (sans Firebase) ============================ */
 let SELFCHECK=[];
 async function probe(url,ms=9000){try{const c=new AbortController();const t=setTimeout(()=>c.abort(),ms);const r=await fetch(url,{cache:"no-store",signal:c.signal});clearTimeout(t);return{ok:r.ok,status:r.status};}catch(e){return{ok:false,error:e.message};}}
-async function runSelfCheck(){SELFCHECK=[];const add=(id,label,ok,detail,fix)=>SELFCHECK.push({id,label,ok,detail,fix});
- const swOk=!!(navigator.serviceWorker&&navigator.serviceWorker.controller);
- add("sw","Service Worker actif",swOk,swOk?"contrôle la page":"non contrôleur","Recharge l'app ou 🧹 Forcer");
- let idbOk=false;try{await IDB.set("__t",1);idbOk=(await IDB.get("__t"))===1;}catch(_){}
- add("idb","Stockage IndexedDB",idbOk,idbOk?"lecture/écriture OK":"indisponible","Mode mémoire automatique");
- add("net","Réseau",navigator.onLine,navigator.onLine?"en ligne":"hors ligne","Base embarquée utilisable hors ligne");
- const own=await probe("data/index.json");add("repo-data","Données du dépôt (data/)",own.ok,own.ok?"index.json accessible":"HTTP "+(own.status||own.error),"Lance la MAJ serveur puis recharge");
- const site=await probe(SITES[0].url);add("cors-sites","CORS tes sites Pages",site.ok,site.ok?"lecture cross-origin OK":"bloqué","Récolte sites partielle ; RappelConso compense");
+async function runSelfCheck(){SELFCHECK=[];
+ const add=(id,label,level,detail,fix)=>SELFCHECK.push({id,label,level,detail,fix});   // level: "ok" | "warn" | "info"
+ add("engine","Moteur de données chargé","ok","data-engine.js v6 actif","—");
+ const swCtl=!!(navigator.serviceWorker&&navigator.serviceWorker.controller);
+ add("sw","Service Worker",swCtl?"ok":"warn",swCtl?"contrôle la page":"pas encore contrôleur","Recharge une fois (le SW prend la main)");
+ await IDB.open();
+ add("store","Stockage local",IDB.mode==="idb"?"ok":"warn",IDB.mode==="idb"?"IndexedDB (persistant)":"mode mémoire (session uniquement) — aucun blocage","Aucun : repli automatique garanti");
+ add("net","Réseau",navigator.onLine?"ok":"warn",navigator.onLine?"en ligne":"hors ligne","Base embarquée + cache SW restent utilisables");
+ const emb=catFrom(EMB);
+ add("emb","Catalogue embarqué","ok",`${emb.marques.size} marques · ${[...emb.modeles.values()].reduce((a,v)=>a+v.size,0)} modèles · ${emb.versions.size} versions chiffrées`,`—`);
+ const own=await probe("data/index.json");
+ add("repo-data","Données du dépôt (data/)",own.ok?"ok":"warn",own.ok?"index.json accessible":"HTTP "+(own.status||own.error),"Lance la MAJ serveur (🚀) puis recharge");
+ const site=await probe(SITES[0].url);
+ add("cors-sites","CORS tes sites Pages",site.ok?"ok":"warn",site.ok?"lecture cross-origin OK":"bloqué "+(site.status||site.error),"Récolte sites partielle ; RappelConso + embarqué compensent");
  const rc=await probe("https://data.economie.gouv.fr/api/explore/v2.1/catalog/datasets/rappelconso-v2-gtin-espaces/records?limit=1");
- add("cors-rc","CORS RappelConso",rc.ok,rc.ok?"API joignable":"bloqué","Source officielle indisponible côté client");
- const nh=await probe("https://api.nhtsa.gov/recalls/recallsByVehicle?make=SKODA&model=ELROQ&modelYear=2025");
- add("cors-nhtsa","CORS NHTSA",nh.ok,nh.ok?"API joignable":"bloqué","Rappels US via workflow serveur");
- const fb=typeof FB_READY!=="undefined"?FB_READY:false;
- add("firebase","Config Firebase",fb,fb?"config présente":"À_REMPLACER","Renseigne FIREBASE_CONFIG + ADMIN_UID (app.js)");
- const uidOk=typeof ADMIN_UID!=="undefined"&&!String(ADMIN_UID).includes("REMPLACER");
- add("rules","UID admin (rules)",uidOk,uidOk?"UID défini":"placeholder","Remplace UID_ADMIN_A_REMPLACER (Firestore → Rules)");
+ add("cors-rc","CORS RappelConso (officiel FR)",rc.ok?"ok":"warn",rc.ok?"API joignable":"bloqué","Rappels FR aussi via workflow serveur");
+ add("nhtsa","Rappels NHTSA (officiel US)","info","via workflow serveur (CORS client bloqué = normal)","Aucun : la phase NHTSA tourne côté GitHub Actions");
  const gh=await ghFetch(`/repos/${ghTarget().owner}/${ghTarget().repo}`);
- add("gh-repo","Dépôt GitHub joignable",gh.ok,gh.ok?ghTarget().owner+"/"+ghTarget().repo:"HTTP "+gh.status,"Corrige le nom du repo (panneau Intégration)");
+ add("gh-repo","Dépôt GitHub joignable",gh.ok?"ok":"warn",gh.ok?ghTarget().owner+"/"+ghTarget().repo:"HTTP "+gh.status,"Corrige le nom du repo dans le panneau Intégration");
+ const vis=await probe("data/visuel.json");const rev=await probe("data/revoques.json");
+ add("pub","Fichiers publiés (visuel/révoques)",(vis.ok&&rev.ok)?"ok":"warn",`visuel ${vis.ok?"OK":"absent"} · revoques ${rev.ok?"OK":"absent"}`,"Crée-les via les boutons 📤 Publier (ou à la main)");
  const k=counts();
- add("mass","Base massive chargée",k.fiches>=200&&k.marques>=40,`${k.fiches} fiches · ${k.marques} marques · ${k.modeles} modèles`,"« Relancer la récolte » ou importe ton export");
+ add("mass","Base massive chargée",(k.fiches>=200&&k.marques>=40)?"ok":"warn",`${k.fiches} fiches · ${k.marques} marques · ${k.modeles} modèles`,"« Relancer la récolte » ou importe ton export (catalogue_source.json)");
  paintSelfCheck();return SELFCHECK;}
-function paintSelfCheck(){const s=SELFCHECK.filter(x=>x.ok).length,total=SELFCHECK.length;
- const badge=D("de-self");if(badge){badge.textContent=`🩺 ${s}/${total} checks`;badge.className="badge "+(s===total?"live":"");badge.title=SELFCHECK.map(x=>(x.ok?"✅":"❌")+" "+x.label+" — "+x.detail+(x.ok?"":" · Fix : "+x.fix)).join("\n");}
- const box=D("de-selfbox");if(box)box.innerHTML=SELFCHECK.map(x=>`<div class="de-sc ${x.ok?"ok":"ko"}"><span>${x.ok?"✅":"❌"}</span><div><b>${E(x.label)}</b><small>${E(x.detail)}${x.ok?"":" · <i>Fix : "+E(x.fix)+"</i>"}</small></div></div>`).join("");}
+function paintSelfCheck(){const okN=SELFCHECK.filter(x=>x.level==="ok").length,warnN=SELFCHECK.filter(x=>x.level==="warn").length,total=SELFCHECK.length;
+ const badge=D("de-self");if(badge){badge.textContent=`🩺 ${okN}/${total} OK`+(warnN?` · ${warnN} avert.`:"");badge.className="badge "+(warnN===0&&okN===total?"live":"warnb");
+  badge.title=SELFCHECK.map(x=>({ok:"✅",warn:"⚠️",info:"ℹ️"}[x.level])+" "+x.label+" — "+x.detail+(x.level==="ok"?"":" · "+x.fix)).join("\n");}
+ const box=D("de-selfbox");if(box)box.innerHTML=SELFCHECK.map(x=>`<div class="de-sc ${x.level}"><span>${{ok:"✅",warn:"⚠️",info:"ℹ️"}[x.level]}</span><div><b>${E(x.label)}</b><small>${E(x.detail)}${x.level==="ok"?"":" · <i>"+E(x.fix)+"</i>"}</small></div></div>`).join("");}
 
+/* ============================ 14. UI console ============================ */
 function injectUI(){if(D("de-panel"))return;
  const st=document.createElement("style");st.textContent=`
 #de-btn{border:1px solid rgba(255,255,255,.25);background:linear-gradient(135deg,#00e5ff,#7c4dff);color:#04102a;font-weight:900;border-radius:12px;padding:8px 12px;cursor:pointer;box-shadow:0 6px 22px rgba(0,229,255,.28)}
@@ -506,7 +533,9 @@ function injectUI(){if(D("de-panel"))return;
 .de-note{color:#93a0d6;font-size:.74rem;margin:6px 0}
 .de-close{position:absolute;top:14px;right:16px;border:0;background:rgba(255,255,255,.1);color:#fff;border-radius:10px;padding:6px 10px;cursor:pointer}
 .de-sc{display:flex;gap:9px;align-items:flex-start;padding:8px 10px;border-radius:10px;margin:5px 0;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.03)}
-.de-sc.ok{border-color:rgba(0,230,118,.3)}.de-sc.ko{border-color:rgba(255,23,68,.35);background:rgba(255,23,68,.06)}
+.de-sc.ok{border-color:rgba(0,230,118,.3)}
+.de-sc.warn{border-color:rgba(255,196,0,.35);background:rgba(255,196,0,.06)}
+.de-sc.info{border-color:rgba(41,121,255,.35);background:rgba(41,121,255,.06)}
 .de-sc b{font-size:.8rem}.de-sc small{display:block;color:#93a0d6;font-size:.7rem}
 @media(max-width:600px){#de-card{padding:14px}.de-grid{grid-template-columns:repeat(2,1fr)}}`;
  document.head.appendChild(st);
@@ -516,8 +545,8 @@ function injectUI(){if(D("de-panel"))return;
  (document.querySelector(".status-strip")||document.querySelector("header")||document.body).appendChild(badge);
  const panel=document.createElement("div");panel.id="de-panel";
  panel.innerHTML=`<div id="de-card"><button class="de-close" id="de-close" type="button">✕</button>
- <h2>🛰️ Console d'intégration &amp; autovérification</h2>
- <div class="de-sub">Base massive auto-construite au lancement · imports multi-projets · réparation GitHub 404 · self-check APK</div>
+ <h2>🛰️ Console d'intégration &amp; autovérification v6</h2>
+ <div class="de-sub">Base massive auto-construite au lancement · imports multi-projets · réparation GitHub 404 · self-check sans backend</div>
  <div class="de-grid" id="de-stats"></div>
  <div class="de-prog"><i id="de-prog"></i></div><div class="de-sub" id="de-prog-txt">0%</div>
  <div class="de-section"><h3>🩺 Autovérification de l'APK</h3><div id="de-selfbox"></div>
@@ -556,6 +585,7 @@ function injectUI(){if(D("de-panel"))return;
  drop.addEventListener("drop",e=>{if(e.dataTransfer.files.length)importFiles([...e.dataTransfer.files]);});
  D("de-ghdetect").onclick=ghDetect;D("de-ghrepair").onclick=ghRepair;D("de-ghdispatch").onclick=ghDispatch;}
 
+/* ============================ 15. Reprise boutons + boot ============================ */
 function rebind(id,ev,fn){const el=D(id);if(!el)return;const n=el.cloneNode(true);el.replaceWith(n);n.addEventListener(ev,fn);return n;}
 function takeOver(){
  rebind("fileImport","change",async e=>{if(e.target.files.length)await importFiles([...e.target.files]);e.target.value="";});
@@ -570,22 +600,19 @@ function takeOver(){
   if(navigator.onLine&&v.marque&&v.modele){const r=await nhtsaVehicle(v);if(r.length){applyData(r,newCat(),"live-nhtsa");await persist();}}
   try{analyserContexte();}catch(e){T("❌ "+e.message);}});
  document.addEventListener("click",e=>{if(e.target.closest("[data-adm]"))setTimeout(paintStats,60);},true);}
-
 async function loadRemoteRepo(){for(const u of["data/index.json","data/catalogue.json","data/catalogue_source.json"]){
  const t=await fetchText(u+"?ts="+Date.now(),15000);if(!t)continue;let j;try{j=JSON.parse(t);}catch(_){continue;}
  if(u.includes("index.json")&&j.chunks){let all=[];for(const f of j.chunks){const x=await fetchText("data/"+f+"?ts="+Date.now(),25000);if(x){try{all=all.concat(JSON.parse(x));}catch(_){}}}
   applyData(all,catFrom(j.catalogue||{}),j.version||"repo");log(`📦 Base dépôt : ${all.length} fiches (${j.version})`);}
  else{const r=normalizeAny(j,u);applyData(r.entries,r.cat,"catalogue");log(`📚 ${u} : ${r.cat.marques.size} marques`);}}}
-
 async function bootData(force=false){setProgress(3);
  applyData([],catFrom(EMB),"embarqué-"+new Date().toISOString().slice(0,10));
  const snap=await IDB.get("snapshot");
- if(snap?.entries?.length){applyData(snap.entries,catFrom(snap.catalogue||{}),snap.version||"cache");log(`💾 Cache restauré : ${snap.entries.length} fiches`);}
+ if(snap?.entries?.length){applyData(snap.entries,catFrom(snap.catalogue||{}),snap.version||"cache");log(`💾 Cache restauré : ${snap.entries.length} fiches (stockage ${IDB.mode})`);}
  await loadRemoteRepo();
  buildVehicleIndex();overrideSearch();paintStats();setProgress(30);
- if(navigator.onLine){ if(counts().fiches<100){ log("⚠️ Base trop petite → récolte forcée"); harvestAll(true); } else harvestAll(force); }
+ if(navigator.onLine){ if(counts().fiches<100){log("⚠️ Base trop petite → récolte forcée");harvestAll(true);} else harvestAll(force); }
  setProgress(100);runSelfCheck();}
-
 function boot(){
  const start=()=>{
   injectUI();takeOver();
@@ -595,10 +622,8 @@ function boot(){
   addEventListener("online",()=>harvestAll(false));
   document.addEventListener("visibilitychange",()=>{if(!document.hidden)harvestAll(false);});
   setInterval(()=>harvestAll(false),6*3600*1000);
-  log("🛰️ Data Engine v5 prêt (catalogue embarqué + ré-assertion + autovérification)");
- };
- if(!document.querySelector("header")){let n=0;const w=setInterval(()=>{n++;if(document.querySelector("header")||n>50){clearInterval(w);start();}},100);}else start();
-}
-window.KEV={booted:true,selfcheck:runSelfCheck,harvest:()=>harvestAll(true),counts,cat:()=>CATALOG,base:()=>BASE,gh:{detect:ghDetect,repair:ghRepair,dispatch:ghDispatch},import:importFiles,reassert};
+  log("🛰️ Data Engine v6 prêt (sans backend · catalogue embarqué · repli mémoire · autovérification)");};
+ if(!document.querySelector("header")){let n=0;const w=setInterval(()=>{n++;if(document.querySelector("header")||n>50){clearInterval(w);start();}},100);}else start();}
+window.KEV={booted:true,selfcheck:runSelfCheck,harvest:()=>harvestAll(true),counts,cat:()=>CATALOG,base:()=>BASE,gh:{detect:ghDetect,repair:ghRepair,dispatch:ghDispatch},import:importFiles,reassert,idbMode:()=>IDB.mode};
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot);else boot();
 })();
