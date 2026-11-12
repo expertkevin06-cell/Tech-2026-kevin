@@ -1,0 +1,42 @@
+name: MAJ bases techniques
+
+on:
+  schedule:
+    - cron: "0 3 1,16 * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: maj-bases
+  cancel-in-progress: false
+
+jobs:
+  maj:
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Icônes PNG
+        run: |
+          pip install pillow -q
+          python scripts/make_icon.py || true
+
+      - name: MAJ massive des bases
+        run: python scripts/update_bases.py
+
+      - name: Publier
+        run: |
+          git config user.name "kev-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add data icons || true
+          git diff --cached --quiet || git commit -m "MAJ auto bases $(date -u +%F)"
+          git pull --rebase origin main || true
+          git push
