@@ -1,0 +1,45 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isAdmin() { return request.auth != null && request.auth.uid == "UID_ADMIN_A_REMPLACER"; }
+
+    match /acces/{uid} {
+      allow create: if request.auth != null && request.auth.uid == uid
+                    && request.resource.data.statut == "attente"
+                    && request.resource.data.prenom.size() <= 40;
+      allow read: if request.auth != null && (request.auth.uid == uid || isAdmin());
+      allow update: if isAdmin() || (request.auth != null && request.auth.uid == uid
+                    && resource.data.statut in ["refuse","revoque"]
+                    && request.resource.data.statut == "attente"
+                    && request.resource.data.historique == resource.data.historique);
+      allow delete: if request.auth != null && (request.auth.uid == uid || isAdmin());
+    }
+
+    match /messages/{id} {
+      allow create: if request.auth != null && request.resource.data.uid == request.auth.uid
+                    && request.resource.data.texte.size() <= 2000;
+      allow read, update, delete: if isAdmin();
+    }
+
+    match /config/{doc} {
+      allow read: if request.auth != null;
+      allow write: if isAdmin();
+    }
+
+    match /quotas/{uid} {
+      allow read: if request.auth != null && (request.auth.uid == uid || isAdmin());
+      allow create: if request.auth != null && request.auth.uid == uid
+                    && request.resource.data.n == 1
+                    && request.resource.data.debut == request.time;
+      allow update: if request.auth != null && request.auth.uid == uid && (
+        (request.time < resource.data.debut + duration.value(7,'d')
+         && request.resource.data.debut == resource.data.debut
+         && request.resource.data.n == resource.data.n + 1
+         && request.resource.data.n <= 5)
+        || (request.time >= resource.data.debut + duration.value(7,'d')
+            && request.resource.data.debut == request.time
+            && request.resource.data.n == 1));
+      allow delete: if isAdmin();
+    }
+  }
+}
