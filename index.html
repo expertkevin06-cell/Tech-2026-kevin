@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="description" content="KEV TECH & FIRE — Diagnostic technique, étude incendie, analyse juridique, catalogue photos par panne, VIN, OBD.">
+<meta name="description" content="KEV TECH & FIRE — diagnostic technique, étude incendie, analyse juridique, photos par panne, VIN, OBD.">
 <meta name="theme-color" content="#070b1e">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -13,11 +13,10 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="mask-icon" href="icon.svg" color="#00e5ff">
-</head>
-:root{--bg:#070b1e;--card:rgba(15,21,50,.74);--card2:rgba(22,28,64,.58);--line:rgba(255,255,255,.13);--line2:rgba(255,255,255,.22);--txt:#eef2ff;--mut:#93a0d6;--mut2:#6b78ad;--ok:#00e676;--warn:#ffc400;--bad:#ff1744;--info:#2979ff;--acc:#00e676;--acc2:#2979ff;--fire:#ff6d00;--fire2:#ff1744;--amber:#ffd740;--violet:#7c4dff;--cyan:#00e5ff;--r:20px;--r2:14px;--r3:10px;--sh:0 18px 60px rgba(0,0,0,.42);--head:74px;color-scheme:dark}
-html[data-theme="technique"]{--acc:#00e5ff;--acc2:#7c4dff}
-html[data-theme="incendie"]{--acc:#ff6d00;--acc2:#ff1744}
+<style>
+:root{--bg:#070b1e;--surface:rgba(15,21,50,.78);--surface2:rgba(22,28,64,.6);--line:rgba(255,255,255,.13);--line2:rgba(255,255,255,.24);--txt:#eef2ff;--mut:#93a0d6;--mut2:#6b78ad;--ok:#00e676;--warn:#ffc400;--bad:#ff1744;--info:#2979ff;--acc:#00e676;--acc2:#2979ff;--fire:#ff6d00;--fire2:#ff1744;--amber:#ffd740;--violet:#7c4dff;--cyan:#00e5ff;--r:20px;--r2:14px;--r3:10px;--sh:0 18px 60px rgba(0,0,0,.45);color-scheme:dark}
+html[data-theme=technique]{--acc:#00e5ff;--acc2:#7c4dff}
+html[data-theme=incendie]{--acc:#ff6d00;--acc2:#ff1744}
 *,*::before,*::after{box-sizing:border-box}
 html{scroll-behavior:smooth}
 body{margin:0;min-height:100vh;overflow-x:hidden;font-family:"Segoe UI",system-ui,-apple-system,Roboto,sans-serif;background:var(--bg);color:var(--txt);-webkit-font-smoothing:antialiased}
@@ -29,26 +28,24 @@ a{color:var(--acc)}
 *::-webkit-scrollbar{width:10px;height:10px}
 *::-webkit-scrollbar-track{background:rgba(255,255,255,.05);border-radius:10px}
 *::-webkit-scrollbar-thumb{background:linear-gradient(180deg,var(--acc),var(--acc2));border-radius:10px;border:2px solid rgba(7,11,30,.9)}
+*::-webkit-scrollbar-thumb:hover{background:linear-gradient(180deg,var(--amber),var(--fire))}
 #bg{position:fixed;inset:0;z-index:-4;width:100%;height:100%}
 #wallpaper{position:fixed;inset:0;z-index:-3;opacity:0;background-size:cover;background-position:center;transition:opacity .7s}
-#vignette{position:fixed;inset:0;z-index:-2;pointer-events:none;background:radial-gradient(ellipse 90% 60% at 50% 0%,transparent 30%,rgba(4,6,18,.34) 75%,rgba(3,4,14,.78))}
-#bootScreen{position:fixed;inset:0;z-index:999;display:grid;place-items:center;background:radial-gradient(ellipse at 50% 30%,#1b1f52,#070b1e 62%);transition:opacity .55s,visibility .55s}
+#vignette{position:fixed;inset:0;z-index:-2;pointer-events:none;background:radial-gradient(ellipse 90% 60% at 50% 0%,transparent 30%,rgba(4,6,18,.34) 75%,rgba(3,4,14,.8))}
+#bootScreen{position:fixed;inset:0;z-index:999;display:grid;place-items:center;background:radial-gradient(ellipse at 50% 30%,#1b1f52,#070b1e 62%);transition:opacity .5s,visibility .5s}
 #bootScreen.done{opacity:0;visibility:hidden;pointer-events:none}
 .boot-core{text-align:center;width:min(420px,86vw)}
-.boot-logo{width:84px;height:84px;margin:0 auto 18px;border-radius:26px;background:linear-gradient(140deg,var(--cyan),var(--violet) 55%,var(--fire));display:grid;place-items:center;font-size:2.2rem;box-shadow:0 0 60px rgba(0,229,255,.4);animation:bootPulse 1.6s ease-in-out infinite}
-@keyframes bootPulse{50%{transform:scale(1.06)}}
-.boot-title{font-size:1.35rem;font-weight:900;margin:0 0 6px;background:linear-gradient(90deg,var(--cyan),var(--violet),var(--fire),var(--amber));background-size:250% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:hueSlide 4s linear infinite}
-@keyframes hueSlide{to{background-position:250% 0}}
+.boot-logo{width:84px;height:84px;margin:0 auto 18px;border-radius:26px;background:linear-gradient(140deg,var(--cyan),var(--violet) 55%,var(--fire));display:grid;place-items:center;font-size:2.2rem;box-shadow:0 0 60px rgba(0,229,255,.4);animation:bp 1.6s ease-in-out infinite}
+@keyframes bp{50%{transform:scale(1.06)}}
+.boot-title{font-size:1.35rem;font-weight:900;margin:0 0 6px;background:linear-gradient(90deg,var(--cyan),var(--violet),var(--fire),var(--amber));background-size:250% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:hs 4s linear infinite}
+@keyframes hs{to{background-position:250% 0}}
 .boot-sub{color:var(--mut);font-size:.82rem;margin:0 0 22px}
 .boot-bar{height:6px;border-radius:6px;background:rgba(255,255,255,.1);overflow:hidden}
-.boot-bar i{display:block;height:100%;width:38%;border-radius:6px;background:linear-gradient(90deg,var(--cyan),var(--ok),var(--amber),var(--fire));animation:bootRun 1.25s ease-in-out infinite}
-@keyframes bootRun{0%{transform:translateX(-110%)}100%{transform:translateX(320%)}}
-#engineBanner{position:fixed;top:10px;left:50%;transform:translateX(-50%);z-index:998;width:min(560px,94vw);background:linear-gradient(120deg,rgba(60,10,10,.97),rgba(40,8,20,.97));border:1px solid var(--bad);border-radius:14px;padding:12px 14px;box-shadow:0 14px 44px rgba(0,0,0,.6);font-size:.8rem}
-#engineBanner b{color:#ff8a80}
-#engineBanner .row{display:flex;gap:8px;margin-top:9px;flex-wrap:wrap}
-header{position:sticky;top:0;z-index:50;min-height:var(--head);display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 16px;background:linear-gradient(180deg,rgba(7,11,30,.93),rgba(7,11,30,.76));backdrop-filter:blur(18px);border-bottom:1px solid var(--line);box-shadow:0 6px 30px rgba(0,0,0,.28)}
+.boot-bar i{display:block;height:100%;width:38%;border-radius:6px;background:linear-gradient(90deg,var(--cyan),var(--ok),var(--amber),var(--fire));animation:br 1.25s ease-in-out infinite}
+@keyframes br{0%{transform:translateX(-110%)}100%{transform:translateX(320%)}}
+header{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 16px;background:linear-gradient(180deg,rgba(7,11,30,.94),rgba(7,11,30,.78));backdrop-filter:blur(18px);border-bottom:1px solid var(--line);box-shadow:0 6px 30px rgba(0,0,0,.3)}
 .brand{display:flex;align-items:center;gap:10px}
-.brand-mark{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;background:linear-gradient(140deg,var(--cyan),var(--violet) 60%,var(--fire));font-size:1.15rem;box-shadow:0 0 26px color-mix(in srgb,var(--acc) 40%,transparent)}
+.brand-mark{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;background:linear-gradient(140deg,var(--cyan),var(--violet) 60%,var(--fire));font-size:1.15rem}
 header h1{margin:0;font-size:1.02rem;font-weight:900;background:linear-gradient(90deg,var(--acc),var(--acc2),var(--amber));background-size:200% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;white-space:nowrap}
 .brand small{display:block;color:var(--mut2);font-size:.62rem}
 .status-strip{display:flex;gap:6px;flex-wrap:wrap}
@@ -58,7 +55,7 @@ header h1{margin:0;font-size:1.02rem;font-weight:900;background:linear-gradient(
 .seg{display:flex;gap:2px;padding:3px;margin-left:auto;background:rgba(255,255,255,.07);border:1px solid var(--line);border-radius:22px}
 .seg button{border:0;background:transparent;color:var(--mut);cursor:pointer;padding:6px 13px;border-radius:18px;font-size:.74rem;font-weight:800;transition:.22s}
 .seg button.on{background:linear-gradient(90deg,var(--acc),var(--acc2));color:#04102a}
-.btn{position:relative;overflow:hidden;display:inline-flex;align-items:center;justify-content:center;gap:7px;border:0;border-radius:var(--r2);cursor:pointer;padding:11px 17px;margin:4px 5px 0 0;font-size:.86rem;font-weight:800;color:#04102a;background:linear-gradient(100deg,var(--acc),var(--acc2));box-shadow:0 6px 22px color-mix(in srgb,var(--acc) 26%,transparent);transition:transform .18s,box-shadow .22s,filter .22s}
+.btn{position:relative;overflow:hidden;display:inline-flex;align-items:center;justify-content:center;gap:7px;border:0;border-radius:var(--r2);cursor:pointer;padding:11px 17px;margin:4px 5px 0 0;font-size:.86rem;font-weight:800;color:#04102a;background:linear-gradient(100deg,var(--acc),var(--acc2));box-shadow:0 6px 22px color-mix(in srgb,var(--acc) 26%,transparent);transition:transform .18s,filter .2s}
 .btn:hover{transform:translateY(-2px);filter:brightness(1.09)}
 .btn:active{transform:scale(.985)}
 .btn:disabled{opacity:.42;cursor:not-allowed;transform:none}
@@ -67,50 +64,47 @@ header h1{margin:0;font-size:1.02rem;font-weight:900;background:linear-gradient(
 .btn.green{background:linear-gradient(100deg,var(--ok),var(--cyan))}
 .btn.amber{background:linear-gradient(100deg,var(--amber),var(--fire))}
 .btn.small{padding:7px 12px;font-size:.76rem;border-radius:var(--r3)}
-.btn .ripple{position:absolute;border-radius:50%;transform:scale(0);pointer-events:none;background:rgba(255,255,255,.42);animation:ripple .55s ease-out forwards;z-index:-1}
-@keyframes ripple{to{transform:scale(3.4);opacity:0}}
 main{width:min(1080px,100%);margin:0 auto;padding:18px 16px 80px}
-.card{position:relative;overflow:hidden;background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:20px;margin-bottom:16px;box-shadow:var(--sh);backdrop-filter:blur(16px);animation:cardIn .45s cubic-bezier(.2,.7,.3,1) both}
+.card{position:relative;overflow:hidden;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:20px;margin-bottom:16px;box-shadow:var(--sh);backdrop-filter:blur(16px);animation:ci .45s cubic-bezier(.2,.7,.3,1) both}
 .card::before{content:"";position:absolute;inset:0 0 auto;height:2px;background:linear-gradient(90deg,transparent,var(--acc),var(--acc2),var(--amber),transparent);opacity:.75}
-@keyframes cardIn{from{opacity:0;transform:translateY(14px)}}
+@keyframes ci{from{opacity:0;transform:translateY(14px)}}
 .card.center{text-align:center;padding:34px 22px}
 .hidden{display:none!important}
 h2{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin:0 0 14px;font-size:1.02rem;font-weight:900;color:var(--acc)}
 h3{margin:16px 0 7px;font-size:.9rem;font-weight:800}
 p{line-height:1.6;margin:8px 0}
 .small,small{font-size:.74rem;color:var(--mut);line-height:1.55}
-.big{font-size:3.1rem;line-height:1;margin-bottom:12px}
-.hero-emoji{font-size:3.6rem;animation:floaty 3.4s ease-in-out infinite}
-@keyframes floaty{50%{transform:translateY(-7px)}}
+.hero-emoji{font-size:3.4rem;animation:fl 3.4s ease-in-out infinite}
+@keyframes fl{50%{transform:translateY(-7px)}}
 .field{display:flex;flex-direction:column;gap:4px;min-width:0}
 .field>label{font-size:.7rem;font-weight:800;letter-spacing:.4px;color:var(--mut);text-transform:uppercase}
-input,select,textarea{width:100%;padding:11px 13px;margin:0;border-radius:var(--r2);border:1px solid var(--line2);background:rgba(6,10,28,.86);color:var(--txt);font-size:.9rem;transition:.2s}
+input,select,textarea{width:100%;padding:11px 13px;margin:0;border-radius:var(--r2);border:1px solid var(--line2);background:rgba(6,10,28,.88);color:var(--txt);font-size:.9rem;transition:.2s}
 input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc);box-shadow:0 0 0 3px color-mix(in srgb,var(--acc) 22%,transparent)}
-textarea{min-height:104px;resize:vertical;line-height:1.55}
-input[type="checkbox"]{width:auto;accent-color:var(--acc)}
-input[type="range"]{padding:0;height:26px;background:transparent;border:0;accent-color:var(--acc)}
-input[type="file"]{padding:9px;cursor:pointer;font-size:.78rem;color:var(--mut);background:rgba(255,255,255,.05);border-style:dashed}
+textarea{min-height:100px;resize:vertical;line-height:1.55}
+input[type=checkbox]{width:auto;accent-color:var(--acc)}
+input[type=range]{padding:0;height:26px;background:transparent;border:0;accent-color:var(--acc)}
+input[type=file]{padding:9px;cursor:pointer;font-size:.78rem;color:var(--mut);background:rgba(255,255,255,.05);border-style:dashed}
 .grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(165px,1fr))}
 .grid.wide{grid-template-columns:repeat(auto-fit,minmax(230px,1fr))}
 .range{display:flex;align-items:center;gap:12px}.range input{flex:1}
 .chips{display:flex;flex-wrap:wrap;gap:7px;margin:9px 0}
 .chips button{border:1px solid color-mix(in srgb,var(--acc) 55%,transparent);background:rgba(6,10,28,.85);color:var(--acc);border-radius:16px;padding:5px 11px;font-size:.75rem;font-weight:700;cursor:pointer}
-.chips label{display:inline-flex;align-items:center;gap:5px;cursor:pointer;border:1px solid var(--line2);border-radius:16px;padding:6px 11px;font-size:.76rem;background:rgba(6,10,28,.8);user-select:none}
+.chips button:hover{background:color-mix(in srgb,var(--acc) 16%,transparent)}
+.chips label{display:inline-flex;align-items:center;gap:5px;cursor:pointer;border:1px solid var(--line2);border-radius:16px;padding:6px 11px;font-size:.76rem;background:rgba(6,10,28,.8)}
 .chips label:has(input:checked){border-color:var(--acc);background:color-mix(in srgb,var(--acc) 16%,transparent);color:var(--acc)}
 .chips-loading{color:var(--mut2);font-size:.76rem;font-style:italic}
 .tag{display:inline-flex;font-size:.65rem;font-weight:800;padding:3px 9px;border-radius:11px;margin:2px 4px 2px 0;background:rgba(255,255,255,.1);color:var(--mut)}
-.tag.feu{background:rgba(255,109,0,.18);color:#ffab40}.tag.crit{background:rgba(255,23,68,.18);color:#ff8a80}.tag.ok{background:rgba(0,230,118,.14);color:#69f0ae}
+.tag.feu{background:rgba(255,109,0,.18);color:#ffab40}.tag.crit{background:rgba(255,23,68,.18);color:#ff8a80}.tag.ok{background:rgba(0,230,118,.14);color:#69f0ae}.tag.info{background:rgba(41,121,255,.16);color:#82b1ff}
 #sugs{position:relative}
-#sugs .list{position:absolute;top:calc(100% + 5px);left:0;right:0;z-index:40;max-height:250px;overflow:auto;background:rgba(8,12,32,.98);border:1px solid var(--acc);border-radius:var(--r2);box-shadow:0 18px 50px rgba(0,0,0,.55)}
-#sugs .list div{padding:10px 13px;cursor:pointer;font-size:.84rem;border-bottom:1px solid rgba(255,255,255,.07)}
-#sugs .list div:hover{background:color-mix(in srgb,var(--acc) 14%,transparent);color:var(--acc)}
-#results{margin-top:14px}
-.hit{border-left:4px solid var(--acc);border-radius:var(--r2);background:rgba(7,11,30,.82);padding:13px 14px;margin:9px 0;transition:transform .2s,box-shadow .2s}
-.hit:hover{transform:translateX(4px);box-shadow:0 8px 26px rgba(0,0,0,.3)}
-.hit.feu{border-left-color:var(--fire);background:linear-gradient(90deg,rgba(255,109,0,.07),rgba(7,11,30,.82) 40%)}
+#sugs .list,.sg-list{position:absolute;top:calc(100% + 4px);left:0;right:0;z-index:80;max-height:250px;overflow:auto;background:rgba(8,12,32,.99);border:1px solid var(--acc);border-radius:var(--r2);box-shadow:0 18px 50px rgba(0,0,0,.6)}
+#sugs .list div,.sg-list div{padding:9px 12px;cursor:pointer;font-size:.8rem;border-bottom:1px solid rgba(255,255,255,.07)}
+#sugs .list div:hover,.sg-list div:hover{background:color-mix(in srgb,var(--acc) 14%,transparent);color:var(--acc)}
+.hit{border-left:4px solid var(--acc);border-radius:var(--r2);background:rgba(7,11,30,.85);padding:13px 14px;margin:9px 0;transition:transform .2s}
+.hit:hover{transform:translateX(4px)}
+.hit.feu{border-left-color:var(--fire);background:linear-gradient(90deg,rgba(255,109,0,.08),rgba(7,11,30,.85) 40%)}
 .hit>b{font-size:.92rem}.hit .meta{font-size:.71rem;color:var(--mut);margin:4px 0 6px}
-.hit details{margin-top:8px}.hit summary{cursor:pointer;color:var(--acc);font-weight:700;font-size:.78rem}
-.hit ul{margin:6px 0;padding-left:20px}.hit li{margin:3px 0;line-height:1.5}
+.hit ul{margin:6px 0;padding-left:20px}.hit li{margin:3px 0}
+.hit summary{cursor:pointer;color:var(--acc);font-weight:700;font-size:.78rem}
 .firebox{border:1px solid rgba(255,109,0,.42);border-radius:var(--r);background:linear-gradient(150deg,rgba(46,17,4,.66),rgba(20,10,30,.6));padding:16px;margin:14px 0}
 .firebox h3{color:#ffab40;margin-top:0}
 .lvl{display:inline-block;font-weight:900;font-size:.78rem;padding:5px 12px;border-radius:11px}
@@ -121,40 +115,45 @@ table{width:100%;border-collapse:collapse;font-size:.78rem;margin:8px 0}
 th{text-align:left;font-size:.68rem;text-transform:uppercase;color:var(--mut);padding:8px 7px;border-bottom:1px solid var(--line2)}
 td{padding:8px 7px;border-bottom:1px solid rgba(255,255,255,.08)}
 .tabs{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:14px;padding:6px;border-radius:var(--r);background:rgba(255,255,255,.045);border:1px solid var(--line)}
-.tabs .btn{flex:1;min-width:112px;margin:0}
-.tabs .btn.ghost{background:transparent;border-color:transparent}
-.tabs .btn.ghost.active{background:linear-gradient(100deg,var(--acc),var(--acc2));color:#04102a}
-#choice .lead{max-width:560px;margin:0 auto 22px;color:var(--mut);font-size:.86rem}
+.tabs .btn{flex:1;min-width:104px;margin:0;background:transparent;color:var(--txt);border:1px solid transparent;box-shadow:none}
+.tabs .btn.active{background:linear-gradient(100deg,var(--acc),var(--acc2));color:#04102a}
 .mode-grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));margin:22px 0}
-.mode-card{width:100%;margin:0;padding:24px 18px;border-radius:var(--r);display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;font-size:1rem;min-height:172px;justify-content:center}
-.mode-card .mode-ico{font-size:2.5rem}
+.mode-card{width:100%;margin:0;padding:24px 18px;border-radius:var(--r);display:flex;flex-direction:column;align-items:center;gap:8px;min-height:168px;justify-content:center}
+.mode-card .ico{font-size:2.5rem}
 .mode-card.admin{background:linear-gradient(140deg,var(--violet),var(--cyan))}
 .mode-card.tiers{background:rgba(255,255,255,.07);border:1px solid var(--line2);color:var(--txt)}
 .trust-row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:18px}
 .trust-pill{font-size:.7rem;font-weight:700;padding:6px 12px;border-radius:16px;background:rgba(255,255,255,.06);border:1px solid var(--line);color:var(--mut)}
 .trust-pill b{color:var(--acc)}
 .state-ico{font-size:3rem;margin-bottom:10px}
-#gateWait .state-ico{animation:spinSlow 2.4s linear infinite}
-@keyframes spinSlow{to{transform:rotate(360deg)}}
-#gateOk .state-ico{animation:popOk .5s cubic-bezier(.2,1.4,.4,1) both}
-@keyframes popOk{from{transform:scale(.4);opacity:0}}
-#gateKo .state-ico{animation:shake .45s ease both}
-@keyframes shake{20%,60%{transform:translateX(-7px)}40%,80%{transform:translateX(7px)}}
-#gateForm input{max-width:340px;margin:0 auto 10px;text-align:center;font-size:1rem}
-#topAnalyse{border-color:color-mix(in srgb,var(--acc) 26%,var(--line))}
-#topAnalyse h2{justify-content:space-between}
-#quotaBadge{margin-left:auto}
-#obdStatus{display:inline-block;padding:7px 13px;border-radius:12px;margin-top:10px;background:rgba(255,255,255,.06);border:1px solid var(--line)}
-#baseStats{padding:10px 13px;border-radius:var(--r2);margin-bottom:12px;background:rgba(0,229,255,.06);border:1px solid rgba(0,229,255,.2);font-family:ui-monospace,Menlo,monospace}
-.code-out{font-family:ui-monospace,Menlo,monospace;font-size:.8rem;word-break:break-all;background:rgba(0,230,118,.08);border:1px dashed rgba(0,230,118,.4);border-radius:10px;padding:10px;margin:10px 0;color:#69f0ae}
+#gateForm input{max-width:340px;margin:0 auto 10px;text-align:center}
+.ph-grid{display:grid;gap:10px;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));margin:10px 0}
+.ph-item{margin:0;border-radius:12px;overflow:hidden;border:1px solid var(--line);background:rgba(9,13,34,.8);cursor:zoom-in;transition:transform .18s}
+.ph-item:hover{transform:translateY(-3px)}
+.ph-item img{width:100%;height:112px;object-fit:cover}
+.ph-item figcaption{font-size:.66rem;color:var(--mut);padding:6px 7px}
+.thumb{width:70px;height:52px;object-fit:cover;border-radius:8px;border:1px solid rgba(0,229,255,.45);cursor:zoom-in}
+#paDrop{border:2px dashed rgba(0,229,255,.5);border-radius:14px;padding:18px;text-align:center;color:var(--mut);cursor:pointer;background:rgba(0,229,255,.04)}
+#paDrop.drag{border-color:var(--ok);background:rgba(0,230,118,.1);color:var(--txt)}
+.code-out{font-family:ui-monospace,Menlo,monospace;font-size:.78rem;word-break:break-all;background:rgba(0,230,118,.08);border:1px dashed rgba(0,230,118,.4);border-radius:10px;padding:10px;margin:10px 0;color:#69f0ae}
+.vin-box{font-family:ui-monospace,Menlo,monospace;letter-spacing:2px;text-transform:uppercase}
+.vin-kv{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin:10px 0}
+.vin-kv>div{background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:10px;padding:8px 10px}
+.vin-kv b{display:block;font-size:.64rem;color:var(--mut);text-transform:uppercase}
+.sc{display:flex;gap:9px;padding:8px 10px;border-radius:10px;margin:5px 0;border:1px solid var(--line);background:rgba(255,255,255,.03)}
+.sc.ok{border-color:rgba(0,230,118,.3)}.sc.warn{border-color:rgba(255,196,0,.35);background:rgba(255,196,0,.06)}.sc.info{border-color:rgba(41,121,255,.35);background:rgba(41,121,255,.06)}
+.sc b{font-size:.8rem}.sc small{display:block;color:var(--mut);font-size:.7rem}
 #toasts{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);z-index:300;width:min(500px,94vw);pointer-events:none}
-.toast{pointer-events:auto;background:rgba(8,12,32,.97);border:1px solid var(--acc);border-radius:var(--r2);padding:13px 15px;margin-top:9px;font-size:.83rem;line-height:1.5;box-shadow:0 14px 44px rgba(0,0,0,.6);animation:toastIn .32s both}
-@keyframes toastIn{from{opacity:0;transform:translateY(18px)}}
+.toast{pointer-events:auto;background:rgba(8,12,32,.98);border:1px solid var(--acc);border-radius:var(--r2);padding:13px 15px;margin-top:9px;font-size:.83rem;box-shadow:0 14px 44px rgba(0,0,0,.6);animation:ti .3s both}
+@keyframes ti{from{opacity:0;transform:translateY(18px)}}
 .divider{height:1px;margin:16px 0;background:linear-gradient(90deg,transparent,var(--line2),transparent)}
 .empty{text-align:center;padding:26px 14px;color:var(--mut2);font-size:.82rem}
-@media (max-width:760px){:root{--head:112px}header{padding:9px 12px;gap:8px}.brand small{display:none}.status-strip{order:3;width:100%}.seg button{padding:6px 10px;font-size:.7rem}main{padding:14px 12px 70px}.card{padding:16px}.grid{grid-template-columns:repeat(auto-fit,minmax(140px,1fr))}.tabs .btn{min-width:calc(50% - 4px)}.mode-grid{grid-template-columns:1fr}table{font-size:.72rem}}
-@media print{body{background:#fff!important;color:#000!important}body>*:not(main){display:none!important}#bg,#wallpaper,#vignette,#bootScreen,#engineBanner,header,#toasts,.no-print,.tabs{display:none!important}.card,.hit,.firebox{background:#fff!important;color:#000!important;border:1px solid #999!important;box-shadow:none!important}h2,h3{color:#000!important}.small,small{color:#333!important}body.print-etude #topAnalyse,body.print-etude #v-recherche,body.print-etude #v-obd,body.print-etude #v-message{display:none!important}body.print-ctx #v-recherche,body.print-ctx #v-etude,body.print-ctx #v-obd,body.print-ctx #v-message{display:none!important}}
-@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.001ms!important;transition-duration:.001ms!important}}
+#lightbox{position:fixed;inset:0;z-index:500;display:none;place-items:center;background:rgba(2,4,12,.93);backdrop-filter:blur(6px);padding:18px}
+#lightbox.open{display:grid}
+#lightbox img{max-height:76vh;max-width:100%;border-radius:14px;box-shadow:0 20px 70px #000}
+@media(max-width:760px){header{padding:9px 12px}.brand small{display:none}.status-strip{order:3;width:100%}.seg button{padding:6px 10px;font-size:.7rem}main{padding:14px 12px 70px}.card{padding:16px}.grid{grid-template-columns:repeat(auto-fit,minmax(140px,1fr))}.tabs .btn{min-width:calc(50% - 4px)}.mode-grid{grid-template-columns:1fr}table{font-size:.72rem}}
+@media print{body{background:#fff!important;color:#000!important}body>*:not(main){display:none!important}#vinCard,.tabs,.no-print,#topAnalyse>.grid,#topAnalyse>textarea{display:none!important}.card,.hit,.firebox{background:#fff!important;color:#000!important;border:1px solid #999!important;box-shadow:none!important}h2,h3{color:#000!important}.small,small{color:#333!important}}
+@media(prefers-reduced-motion:reduce){*{animation-duration:.001ms!important;transition-duration:.001ms!important}}
 </style>
 </head>
 <body>
@@ -162,34 +161,20 @@ td{padding:8px 7px;border-bottom:1px solid rgba(255,255,255,.08)}
 <div id="wallpaper" aria-hidden="true"></div>
 <div id="vignette" aria-hidden="true"></div>
 
-<div id="bootScreen" role="status">
-  <div class="boot-core">
-    <div class="boot-logo">⚡</div>
-    <p class="boot-title">KEV TECH &amp; FIRE</p>
-    <p class="boot-sub">Chargement des bases techniques &amp; incendie…</p>
-    <div class="boot-bar"><i></i></div>
-  </div>
-</div>
+<div id="bootScreen"><div class="boot-core">
+<div class="boot-logo">⚡</div><p class="boot-title">KEV TECH &amp; FIRE</p>
+<p class="boot-sub">Initialisation des bases techniques…</p><div class="boot-bar"><i></i></div>
+</div></div>
 
-<div id="engineBanner" class="hidden" role="alert">
-  <b>⚠️ Moteur de données non chargé.</b>
-  <span id="engineMsg">Vérification en cours…</span>
-  <div class="row">
-    <button type="button" class="btn red small" id="engineForce">🧹 Forcer le rechargement</button>
-    <button type="button" class="btn amber small" id="engineRetry">🔁 Réessayer</button>
-  </div>
-</div>
-
-<header id="mainHeader">
-  <div class="brand">
-    <div class="brand-mark" aria-hidden="true">⚡</div>
-    <div><h1>KEV TECH &amp; FIRE</h1><small>Diagnostic · Incendie · Analyse juridique · 100% local</small></div>
-  </div>
+<header>
+  <div class="brand"><div class="brand-mark">⚡</div><div><h1>KEV TECH &amp; FIRE</h1><small>Diagnostic · Incendie · Juridique</small></div></div>
   <div class="status-strip">
-    <span class="badge live" id="netBadge">📶 réseau…</span>
-    <span class="badge" id="baseBadge">🗄️ base…</span>
+    <span class="badge live" id="netBadge">📶 …</span>
+    <span class="badge" id="baseBadge">🗄️ …</span>
+    <span class="badge" id="syncBadge" style="cursor:pointer" title="Canal de synchronisation">📡 …</span>
+    <span class="badge" id="selfBadge" style="cursor:pointer" title="Autovérification">🩺 …</span>
   </div>
-  <div class="seg" id="themeSeg" role="tablist">
+  <div class="seg" id="themeSeg">
     <button type="button" data-t="tous" class="on">Tous</button>
     <button type="button" data-t="technique">🔧 Technique</button>
     <button type="button" data-t="incendie">🔥 Incendie</button>
@@ -199,29 +184,28 @@ td{padding:8px 7px;border-bottom:1px solid rgba(255,255,255,.08)}
 
 <main>
   <section id="choice" class="card center">
-    <div class="hero-emoji" aria-hidden="true">🏎️</div>
+    <div class="hero-emoji">🏎️</div>
     <h2 style="justify-content:center">KEV TECH &amp; FIRE — by Kevin</h2>
-    <p class="lead">Diagnostic technique, étude incendie renforcée par véhicule, analyse juridique du contexte. Fonctionne sans serveur : tout est local + fichiers publiés.</p>
+    <p class="small">Diagnostic technique, étude incendie par véhicule, analyse juridique du contexte, catalogue photos, VIN et OBD.</p>
     <div class="mode-grid">
-      <button type="button" class="btn mode-card admin" id="btnModeAdmin"><span class="mode-ico">🛡️</span><b>OUVRIR EN ADMIN</b><small>Mot de passe à chaque ouverture</small></button>
-      <button type="button" class="btn mode-card tiers" id="btnModeTiers"><span class="mode-ico">👤</span><b>OUVRIR EN TIERS</b><small>Code d'accès fourni par l'admin</small></button>
+      <button type="button" class="btn mode-card admin" id="btnModeAdmin"><span class="ico">🛡️</span><b>OUVRIR EN ADMIN</b><small>Mot de passe à chaque ouverture</small></button>
+      <button type="button" class="btn mode-card tiers" id="btnModeTiers"><span class="ico">👤</span><b>OUVRIR EN TIERS</b><small>Code d'accès fourni par l'admin</small></button>
     </div>
-    <div class="trust-row">
-      <span class="trust-pill">🇫🇷 <b>RappelConso</b></span><span class="trust-pill">🇪 <b>Safety Gate</b></span>
-      <span class="trust-pill">🇺🇸 <b>NHTSA (serveur)</b></span><span class="trust-pill">🔗 <b>5 projets</b></span><span class="trust-pill">⚖️ <b>Auto-Legal</b></span>
-    </div>
+    <div class="trust-row"><span class="trust-pill">🇫🇷 <b>RappelConso</b></span><span class="trust-pill">🇪🇺 <b>Safety Gate</b></span><span class="trust-pill">🇺🇸 <b>NHTSA</b></span><span class="trust-pill">📷 <b>Photos réelles</b></span><span class="trust-pill">⚖️ <b>Auto-Legal</b></span></div>
   </section>
 
   <section id="gate" class="card center hidden">
     <div id="gateForm">
       <div class="state-ico">👤</div><h2 style="justify-content:center">Accès tiers</h2>
-      <p class="small">Entre ton prénom et le <b>code d'accès</b> remis par l'administrateur.</p>
+      <p class="small">Prénom + code d'accès remis par l'administrateur.</p>
       <input id="prenom" maxlength="40" placeholder="Ton prénom" autocomplete="given-name">
-      <input id="accessCode" placeholder="Code d'accès (ex : eyJwIjoi…)" autocomplete="off" style="font-family:ui-monospace,Menlo,monospace">
+      <input id="accessCode" placeholder="Code d'accès" autocomplete="off" style="font-family:ui-monospace,Menlo,monospace">
       <button type="button" class="btn" id="btnDemande">🔓 Valider mon code</button>
-      <p class="small" style="margin-top:10px">Pas de code ? <a href="#" id="lnkAskCode">📧 Demander un code à l'admin</a></p>
+      <p class="small"><a href="#" id="lnkAskCode">📧 Demander un code</a></p>
+      <details style="margin-top:12px"><summary class="small" style="cursor:pointer;color:var(--acc)">📡 Rejoindre un canal de synchronisation</summary>
+        <input id="chCode" placeholder="Code canal" style="margin-top:8px"><button type="button" class="btn ghost small" id="chGo">Rejoindre</button></details>
     </div>
-    <div id="gateWait" class="hidden"><div class="state-ico">⏳</div><h2 style="justify-content:center">Demande envoyée</h2><p>Bonjour <b id="waitName"></b>, un email a été préparé pour l'administrateur. Dès réception de ton code, revale-le ici.</p><button type="button" class="btn ghost" id="btnBackForm">← J'ai mon code</button></div>
+    <div id="gateWait" class="hidden"><div class="state-ico">📨</div><h2 style="justify-content:center">Demande préparée</h2><p>Bonjour <b id="waitName"></b>, ton email de demande est prêt.</p><button type="button" class="btn ghost" id="btnBackForm">← J'ai mon code</button></div>
     <div id="gateOk" class="hidden"><div class="state-ico">✅</div><h2 style="justify-content:center">Accès autorisé</h2><p>Bienvenue <b id="okName"></b> !</p><button type="button" class="btn green" id="btnEntrer">🚗 Entrer</button></div>
     <div id="gateKo" class="hidden"><div class="state-ico">🔒</div><h2 style="justify-content:center">Accès refusé</h2><p id="koText"></p><button type="button" class="btn amber" id="btnReDemande">🔁 Réessayer</button></div>
     <div class="divider"></div><button type="button" class="btn ghost small" id="btnGateBack">← Changer de mode</button>
@@ -229,217 +213,181 @@ td{padding:8px 7px;border-bottom:1px solid rgba(255,255,255,.08)}
 
   <section id="adminLogin" class="card center hidden">
     <div class="state-ico">🛡️</div><h2 style="justify-content:center">Connexion administrateur</h2>
-    <p class="small">Vérification locale · champ vidé après chaque tentative · redemandé à chaque ouverture.</p>
-    <input id="adminPwd" type="password" autocomplete="new-password" placeholder="Mot de passe administrateur" style="max-width:340px;margin:0 auto 10px;text-align:center">
+    <input id="adminPwd" type="password" autocomplete="new-password" placeholder="Mot de passe" style="max-width:340px;margin:0 auto 10px;text-align:center">
     <div><button type="button" class="btn" id="btnAdminLogin">🔑 Entrer</button><button type="button" class="btn ghost" id="btnAdminBack">← Retour</button></div>
   </section>
 
   <section id="app" class="hidden">
+    <div class="card" id="vinCard">
+      <h2>🔎 Recherche campagne par VIN <span class="badge" id="vinState">prêt</span></h2>
+      <div class="grid wide">
+        <div class="field"><label for="vinInput">VIN (17 caractères — case E)</label><input id="vinInput" class="vin-box" maxlength="17" placeholder="VF3xxxxxxxxxxxxxx" autocomplete="off" spellcheck="false"></div>
+        <div class="field"><label>&nbsp;</label><div><button type="button" class="btn" id="vinGo">⚙️ Analyser</button><button type="button" class="btn ghost" id="vinPaste">📋 Coller</button></div></div>
+      </div>
+      <div id="vinOut"></div>
+    </div>
+
     <div class="card" id="topAnalyse">
       <h2><span>🧠 Analyse du contexte — technique + juridique</span><span class="badge" id="quotaBadge">🎟️ …</span></h2>
       <div class="grid">
-        <div class="field"><label for="cMarque">Marque</label><input id="cMarque" list="dlMarques" placeholder="Skoda" autocomplete="off"></div>
-        <div class="field"><label for="cModele">Modèle</label><input id="cModele" list="dlModeles" placeholder="Elroq" autocomplete="off"></div>
-        <div class="field"><label for="cMoteur">Motorisation</label><input id="cMoteur" list="dlMoteurs" placeholder="Électrique 77 kWh" autocomplete="off"></div>
-        <div class="field"><label for="cPuiss">Puissance (ch)</label><input id="cPuiss" type="number" min="0" max="2000" placeholder="286"></div>
-        <div class="field"><label for="cAnnee">Année</label><input id="cAnnee" type="number" min="1980" max="2030" placeholder="2025"></div>
-        <div class="field"><label for="cEnergie">Énergie</label><select id="cEnergie"><option value="">—</option><option>essence</option><option>diesel</option><option>hybride</option><option>electrique</option></select></div>
+        <div class="field"><label for="cMarque">Marque</label><input id="cMarque" placeholder="Peugeot" autocomplete="off"></div>
+        <div class="field"><label for="cModele">Modèle</label><input id="cModele" placeholder="3008" autocomplete="off"></div>
+        <div class="field"><label for="cMoteur">Motorisation</label><input id="cMoteur" placeholder="Choisis dans la liste…" autocomplete="off"></div>
+        <div class="field"><label for="cPuiss">Puissance (ch)</label><input id="cPuiss" type="number" min="0" max="2000" placeholder="130"></div>
+        <div class="field"><label for="cAnnee">Année</label><input id="cAnnee" type="number" min="1980" max="2030" placeholder="2018"></div>
+        <div class="field"><label for="cEnergie">Énergie</label><select id="cEnergie"><option value="">—</option><option value="essence">Essence</option><option value="diesel">Diesel</option><option value="hybride">Hybride</option><option value="electrique">Électrique</option></select></div>
       </div>
-      <datalist id="dlMarques"></datalist><datalist id="dlModeles"></datalist><datalist id="dlMoteurs"></datalist>
-      <div class="field" style="margin-top:12px"><label for="cVendeur">Vendeur (volet juridique)</label>
-        <select id="cVendeur"><option value="inconnu">Inconnu</option><option value="professionnel">Professionnel</option><option value="particulier">Particulier</option></select></div>
-      <div class="field" style="margin-top:12px"><label for="ctx">Contexte libre</label>
-        <textarea id="ctx" maxlength="1200" placeholder="Véhicule, symptômes, date d'achat, prix, vendeur, panne, incendie, litige…"></textarea></div>
-      <div class="chips" id="predCtx"></div>
-      <div class="no-print">
-        <button type="button" class="btn" id="btnCtx">⚖️ Analyser le contexte</button>
-        <button type="button" class="btn ghost" id="btnCtxPrint">🖨️ PDF</button>
-        <button type="button" class="btn ghost" id="btnCtxExport">📤 JSON</button>
-        <a class="btn ghost" href="https://auto-legal-by-kevin.lovable.app/" target="_blank" rel="noopener">🔗 Auto-Legal IA</a>
-      </div>
+      <div class="field" id="engineWrap" style="margin-top:10px"><label>Motorisations réelles du modèle <span class="badge" id="engCount">0</span></label><div class="chips" id="engChips"></div></div>
+      <div class="field" id="puissWrap" style="margin-top:10px"><label>Puissances du moteur choisi <span class="badge" id="puissCount">0</span></label><div class="chips" id="puissChips"></div></div>
+      <div id="attribWrap" class="small" style="margin-top:10px"></div>
+      <div class="field" style="margin-top:12px"><label for="cVendeur">Vendeur (volet juridique)</label><select id="cVendeur"><option value="inconnu">Inconnu</option><option value="professionnel">Professionnel</option><option value="particulier">Particulier</option></select></div>
+      <div class="field" style="margin-top:12px"><label for="ctx">Contexte libre</label><textarea id="ctx" maxlength="1500" placeholder="Véhicule, symptômes, date d'achat, prix, vendeur, panne, incendie, litige…"></textarea></div>
+      <div class="chips" id="predCtx"></div><div id="liveCorr" class="small"></div>
+      <div class="no-print"><button type="button" class="btn" id="btnCtx">⚖️ Analyser le contexte</button><button type="button" class="btn ghost" id="btnCtxPrint">🖨️ PDF</button><button type="button" class="btn ghost" id="btnCtxExport">📤 JSON</button></div>
       <div id="ctxReport"></div>
     </div>
 
-    <div class="tabs no-print">
-      <button type="button" class="btn ghost active" data-nav="recherche">🔎 Recherche</button>
-      <button type="button" class="btn ghost" data-nav="etude">🧠 Étude de cas</button>
-      <button type="button" class="btn ghost" data-nav="obd">🔵 OBD</button>
-      <button type="button" class="btn ghost" data-nav="message">✉️ Message</button>
-      <button type="button" class="btn ghost hidden" id="btnBackAdmin">🛡️ Admin</button>
+    <div class="tabs no-print" id="appTabs">
+      <button type="button" class="btn active" data-nav="recherche">🔎 Recherche</button>
+      <button type="button" class="btn" data-nav="etude">🧠 Étude de cas</button>
+      <button type="button" class="btn" data-nav="photos">📷 Photos</button>
+      <button type="button" class="btn" data-nav="obd">🔵 OBD</button>
+      <button type="button" class="btn" data-nav="message">✉️ Message</button>
+      <button type="button" class="btn hidden" id="btnBackAdmin">🛡️ Admin</button>
     </div>
 
     <div id="v-recherche" class="card">
       <h2>🔎 Recherche prédictive unifiée</h2>
-      <p class="small">Marque · modèle · motorisation · puissance · DTC · système · symptôme.</p>
-      <div id="sugs"><input id="q" placeholder="Ex : Skoda Elroq, P0016, EGR, fuite huile turbo…" autocomplete="off"><div class="list hidden" id="qList"></div></div>
+      <div id="sugs"><input id="q" placeholder="Skoda Elroq, courroie, P0016, AdBlue…" autocomplete="off"><div class="list hidden" id="qList"></div></div>
       <div class="grid" style="margin-top:12px">
-        <div class="field"><label for="fMarque">Marque</label><select id="fMarque"><option value="">Toutes marques</option></select></div>
-        <div class="field"><label for="fSys">Système</label><select id="fSys"><option value="">Tous systèmes</option></select></div>
-        <div class="field"><label for="fGrav">Gravité</label><select id="fGrav"><option value="">Toutes</option><option>critique</option><option>eleve</option><option>modere</option></select></div>
+        <div class="field"><label for="fMarque">Marque</label><select id="fMarque"><option value="">Toutes</option></select></div>
+        <div class="field"><label for="fSys">Système</label><select id="fSys"><option value="">Tous</option></select></div>
+        <div class="field"><label for="fGrav">Gravité</label><select id="fGrav"><option value="">Toutes</option><option value="critique">Critique</option><option value="eleve">Élevée</option><option value="modere">Modérée</option></select></div>
       </div>
-      <div id="results"><div class="empty"><div class="big">🗂️</div>Chargement de la base…</div></div>
+      <div id="results"><div class="empty">Chargement de la base…</div></div>
     </div>
 
     <div id="v-etude" class="card hidden">
-      <h2>🧠 Étude de cas + 🔥 analyse incendie renforcée</h2>
-      <p class="small">Véhicule = sélecteur en haut. Coche les constatations.</p>
-      <h3>Constatations</h3><div class="chips" id="qcm"><span class="chips-loading">Chargement…</span></div>
-      <div class="field" style="margin-top:12px"><label style="text-transform:none;font-size:.8rem"><input type="checkbox" id="dtcLu"> Codes défauts (DTC) lus sur le véhicule</label>
-        <input id="cDtc" class="hidden" placeholder="P0016, P0521…" autocomplete="off"></div>
-      <div class="no-print" style="margin-top:12px">
-        <button type="button" class="btn" id="btnAnalyser">⚙️ Lancer l'étude</button>
-        <button type="button" class="btn ghost" id="btnPrint">🖨️ PDF</button>
-        <button type="button" class="btn ghost" id="btnExportEtude">📤 JSON</button>
-      </div>
-      <div id="rapport"></div>
-      <div class="divider no-print"></div><h3 class="no-print">🕘 Historique</h3><div id="histo" class="no-print"></div>
+      <h2>🧠 Étude de cas + 🔥 analyse incendie</h2>
+      <p class="small">Véhicule = sélecteur ci-dessus. Coche les constatations.</p>
+      <div class="chips" id="qcm"></div>
+      <div class="field" style="margin-top:12px"><label style="text-transform:none;font-size:.8rem"><input type="checkbox" id="dtcLu"> Codes défauts (DTC) lus</label><input id="cDtc" class="hidden" placeholder="P0016, P0521…"></div>
+      <div class="no-print" style="margin-top:12px"><button type="button" class="btn" id="btnAnalyser">⚙️ Lancer l'étude</button><button type="button" class="btn ghost" id="btnPrint">🖨️ PDF</button><button type="button" class="btn ghost" id="btnExportEtude">📤 JSON</button></div>
+      <div id="rapport"></div><div class="divider no-print"></div><h3 class="no-print">🕘 Historique</h3><div id="histo" class="no-print"></div>
+    </div>
+
+    <div id="v-photos" class="card hidden">
+      <h2>📷 Catalogue photos par panne</h2>
+      <p class="small">Photos intégrées par l'admin d'abord, puis photos réelles libres (Wikimedia Commons).</p>
+      <div class="field"><label for="photoQ">Panne recherchée</label><input id="photoQ" placeholder="courroie distribution délaminée, AdBlue cristallisation…"></div>
+      <button type="button" class="btn" id="photoGo">📷 Chercher</button><div id="photoOut"></div>
     </div>
 
     <div id="v-obd" class="card hidden">
       <h2>🔵 OBD Bluetooth (ELM327 BLE)</h2>
-      <p class="small">Adaptateurs BLE (Vgate iCar Pro BLE, OBDLink MX+…). Contact mis.</p>
-      <button type="button" class="btn" id="btnObd">🔗 Connecter</button>
-      <button type="button" class="btn ghost" id="btnObdRead" disabled>📥 Lire les défauts</button>
+      <p class="small">Adaptateurs BLE uniquement. Contact mis.</p>
+      <button type="button" class="btn" id="btnObd">🔗 Connecter</button><button type="button" class="btn ghost" id="btnObdRead" disabled>📥 Lire les défauts</button>
       <p id="obdStatus" class="small">Non connecté.</p><div id="obdResult"></div>
     </div>
 
     <div id="v-message" class="card hidden">
       <h2>✉️ Message à l'administrateur</h2>
-      <p class="small">Sans serveur : le message part par <b>email</b> (ou copie) vers l'adresse configurée par l'admin.</p>
-      <div class="field"><label for="msgTexte">Message</label><textarea id="msgTexte" maxlength="2000" placeholder="Ta question / demande…"></textarea></div>
+      <div class="field"><label for="msgTexte">Message</label><textarea id="msgTexte" maxlength="2000"></textarea></div>
       <div class="chips" id="predMsg"></div>
-      <button type="button" class="btn" id="btnMsg">📧 Envoyer par email</button>
-      <button type="button" class="btn ghost" id="btnMsgCopy">📋 Copier</button>
-      <h3>📤 Ma boîte d'envoi (locale)</h3><div id="outbox"></div>
+      <button type="button" class="btn" id="btnMsg">📧 Envoyer par email</button><button type="button" class="btn ghost" id="btnMsgCopy">📋 Copier</button>
+      <h3>📤 Boîte d'envoi locale</h3><div id="outbox"></div>
     </div>
   </section>
 
   <section id="admin" class="hidden">
-    <div class="tabs no-print">
-      <button type="button" class="btn ghost active" data-adm="acces">🔑 Codes d'accès</button>
-      <button type="button" class="btn ghost" data-adm="visuel">🖼️ Fond</button>
-      <button type="button" class="btn ghost" data-adm="contact">📮 Contact</button>
-      <button type="button" class="btn ghost" data-adm="base">🗄️ Base &amp; MAJ</button>
-      <button type="button" class="btn ghost" id="btnAdminToApp">🚗 Application</button>
+    <div class="tabs no-print" id="admTabs">
+      <button type="button" class="btn active" data-adm="acces">🔑 Accès</button>
+      <button type="button" class="btn" data-adm="photos">🖼️ Photos &amp; pannes</button>
+      <button type="button" class="btn" data-adm="visuel">🎨 Fond</button>
+      <button type="button" class="btn" data-adm="sync">📡 Sync</button>
+      <button type="button" class="btn" data-adm="base">🗄️ Base</button>
+      <button type="button" class="btn" id="btnAdminToApp">🚗 Application</button>
     </div>
 
     <div id="a-acces" class="card">
-      <h2>🔑 Codes d'accès tiers (signés, sans serveur)</h2>
-      <p class="small">Génère un code par personne (prénom + durée). Le code est vérifié localement sur l'APK du tiers. La révocation est publiée dans <code>data/revoques.json</code>.</p>
-      <div class="grid">
-        <div class="field"><label for="gcPrenom">Prénom du tiers</label><input id="gcPrenom" placeholder="Kevin"></div>
-        <div class="field"><label for="gcJours">Validité (jours)</label><input id="gcJours" type="number" value="365" min="1" max="3650"></div>
-      </div>
-      <button type="button" class="btn green" id="btnGenCode">🎟️ Générer le code</button>
+      <h2>🔑 Codes d'accès tiers</h2>
+      <div class="grid"><div class="field"><label for="gcPrenom">Prénom</label><input id="gcPrenom"></div><div class="field"><label for="gcJours">Validité (jours)</label><input id="gcJours" type="number" value="365" min="1"></div></div>
+      <button type="button" class="btn green" id="btnGenCode">🎟️ Générer</button>
       <div class="code-out hidden" id="genOut"></div>
-      <div class="no-print"><button type="button" class="btn ghost small" id="btnCopyCode">📋 Copier</button><button type="button" class="btn ghost small" id="btnShareCode">📤 Partager</button></div>
+      <button type="button" class="btn ghost small" id="btnCopyCode">📋 Copier</button><button type="button" class="btn ghost small" id="btnShareCode">📤 Partager</button>
+      <div class="divider"></div><h3>Codes émis</h3><div id="issuedList"></div>
+      <h3>🚫 Révocations</h3><div id="revokeList"></div><button type="button" class="btn red" id="btnPublishRevoke">📡 Publier les révocations</button>
+    </div>
+
+    <div id="a-photos" class="card hidden">
+      <h2>🖼️ Photos réelles &amp; nouvelles pannes</h2>
+      <div id="paDrop">📷 <b>Colle (Ctrl+V) / glisse / clique</b><input type="file" id="paFile" accept="image/*" multiple style="display:none"></div>
+      <div class="grid" style="margin-top:10px"><div class="field"><label for="paUrl">OU URL d'image</label><input id="paUrl" placeholder="https://…/photo.jpg"></div><div class="field"><label for="paCap">Légende</label><input id="paCap" placeholder="courroie délaminée 1.2 PureTech"></div></div>
+      <button type="button" class="btn ghost" id="paUrlGo">➕ Ajouter l'URL</button>
+      <div id="paPending" class="chips" style="margin-top:10px"></div>
       <div class="divider"></div>
-      <h3>Codes émis sur cet appareil</h3>
-      <div id="issuedList"></div>
-      <div class="divider"></div>
-      <h3>🚫 Révocation</h3>
-      <p class="small">Révoquer coupe l'accès du code sur toutes les APK dès la publication (ou au prochain check).</p>
-      <div id="revokeList"></div>
-      <button type="button" class="btn red" id="btnPublishRevoke">📤 Publier data/revoques.json</button>
-      <button type="button" class="btn ghost" id="btnExportRevoke">📥 Exporter revoques.json</button>
+      <div class="grid wide"><div class="field"><label for="paFaultQ">Filtrer les pannes</label><input id="paFaultQ" placeholder="courroie, P0016…"></div><div class="field"><label for="paFault">Panne cible</label><select id="paFault"></select></div></div>
+      <div id="paNewForm" class="hidden">
+        <h3>Nouvelle panne</h3>
+        <div class="grid wide">
+          <div class="field"><label for="paTitre">Défaut / titre</label><input id="paTitre"></div>
+          <div class="field"><label for="paMarque">Marque(s)</label><input id="paMarque"></div>
+          <div class="field"><label for="paModele">Modèle(s)</label><input id="paModele"></div>
+          <div class="field"><label for="paMoteur">Motorisation</label><input id="paMoteur"></div>
+          <div class="field"><label for="paCh">Puissances (ch)</label><input id="paCh" placeholder="100,130"></div>
+          <div class="field"><label for="paAnnees">Années</label><input id="paAnnees" placeholder="2013-2023"></div>
+          <div class="field"><label for="paEnergie">Énergie</label><select id="paEnergie"><option value="">—</option><option value="essence">Essence</option><option value="diesel">Diesel</option><option value="hybride">Hybride</option><option value="electrique">Électrique</option></select></div>
+          <div class="field"><label for="paSys">Système</label><input id="paSys"></div>
+          <div class="field"><label for="paDtc">DTC</label><input id="paDtc"></div>
+          <div class="field"><label for="paSympt">Symptômes</label><input id="paSympt"></div>
+          <div class="field"><label for="paGrav">Gravité</label><select id="paGrav"><option value="eleve">Élevée</option><option value="critique">Critique</option><option value="modere">Modérée</option></select></div>
+          <div class="field"><label for="paUrlSrc">Source URL</label><input id="paUrlSrc"></div>
+        </div>
+        <div class="field" style="margin-top:10px"><label for="paMeca">Mécanisme / causes</label><textarea id="paMeca"></textarea></div>
+        <div class="field" style="margin-top:10px"><label for="paConseq">Conséquences (1/ligne)</label><textarea id="paConseq"></textarea></div>
+        <div class="field" style="margin-top:10px"><label for="paIndices">Indices visuels (1/ligne)</label><textarea id="paIndices"></textarea></div>
+        <label class="small" style="display:flex;gap:7px;margin:10px 0"><input type="checkbox" id="paFeu"> Risque d'incendie</label>
+        <div class="field"><label for="paChaine">Chaîne incendie</label><input id="paChaine"></div>
+      </div>
+      <div style="margin-top:12px"><button type="button" class="btn green" id="paAttach">🔗 Rattacher</button><button type="button" class="btn" id="paPubSync">📡 Publier aux tiers</button><button type="button" class="btn ghost" id="paExport">📥 Exporter</button></div>
+      <div class="divider"></div><h3>Photos rattachées</h3><div id="paList"></div>
     </div>
 
     <div id="a-visuel" class="card hidden">
-      <h2>🖼️ Fond d'écran &amp; opacité — diffusion par fichier publié</h2>
-      <div class="field"><label for="fileFond">Fond (photo réelle ≤ 700 Ko)</label><input type="file" id="fileFond" accept="image/*"></div>
-      <div class="field" style="margin-top:12px"><label for="opacite">Opacité : <b id="opVal">60%</b></label>
-        <div class="range"><input type="range" id="opacite" min="0" max="100" value="60"><button type="button" class="btn small" id="btnOp">💾 Appliquer</button></div></div>
+      <h2>🎨 Fond d'écran &amp; contact</h2>
+      <div class="field"><label for="fileFond">Fond (image)</label><input type="file" id="fileFond" accept="image/*"></div>
+      <div class="field" style="margin-top:12px"><label for="opacite">Opacité : <b id="opVal">60%</b></label><div class="range"><input type="range" id="opacite" min="0" max="100" value="60"><button type="button" class="btn small" id="btnOp">💾 Appliquer</button></div></div>
       <div class="field" style="margin-top:12px"><label for="fileVoiture">Voiture animée (PNG détouré)</label><input type="file" id="fileVoiture" accept="image/*"></div>
-      <div style="margin-top:12px">
-        <button type="button" class="btn green" id="btnPublishVisuel">📤 Publier data/visuel.json</button>
-        <button type="button" class="btn ghost" id="btnExportVisuel">📥 Exporter visuel.json</button>
-        <button type="button" class="btn red small" id="btnVisuelReset">🗑️ Réinitialiser</button>
-      </div>
-      <p class="small">Publier écrit le fichier dans ton dépôt (token GitHub). Toutes les APK le lisent au lancement et chaque heure.</p>
+      <div class="field" style="margin-top:12px"><label for="contactEmail">Email admin</label><input id="contactEmail" type="email" placeholder="ton@email.fr"></div>
+      <button type="button" class="btn green" id="btnPublishVisuel">📡 Publier aux tiers</button><button type="button" class="btn red small" id="btnVisuelReset">🗑️ Réinitialiser</button>
     </div>
 
-    <div id="a-contact" class="card hidden">
-      <h2>📮 Contact reçu par les tiers</h2>
-      <div class="field"><label for="contactEmail">Email admin (destinataire des messages tiers)</label><input id="contactEmail" type="email" placeholder="ton@email.fr"></div>
-      <button type="button" class="btn green" id="btnPublishContact">📤 Publier (inclus dans visuel.json)</button>
-      <p class="small">Les tiers voient un bouton « Envoyer par email » qui ouvre leur messagerie pré-remplie vers cette adresse.</p>
+    <div id="a-sync" class="card hidden">
+      <h2>📡 Synchronisation temps réel — sans token</h2>
+      <div class="grid wide"><div class="field"><label for="syBackend">Backend</label><select id="syBackend"><option value="kvdb">kvdb.io (recommandé)</option><option value="restful">restful-api.dev</option><option value="jsonblob">jsonblob.com</option></select></div><div class="field"><label for="syChannel">Code canal</label><input id="syChannel"></div></div>
+      <div style="margin-top:10px"><button type="button" class="btn green" id="syCreate">✨ Créer un canal</button><button type="button" class="btn" id="sySave">💾 Utiliser</button><button type="button" class="btn ghost" id="syShare">📤 Partager</button><button type="button" class="btn ghost" id="syTest">🔎 Tester</button></div>
+      <label class="small" style="display:flex;gap:7px;margin:12px 0"><input type="checkbox" id="syAuto"> Publication automatique</label>
+      <button type="button" class="btn amber" id="syPub">📡 Publier maintenant</button><button type="button" class="btn ghost" id="syPull">🔄 Recevoir</button><span class="badge" id="syStatus">—</span>
     </div>
 
     <div id="a-base" class="card hidden">
-      <h2>🗄️ Base &amp; mises à jour — admin seul</h2>
-      <div id="baseStats" class="small">Chargement…</div>
-      <div class="no-print"><button type="button" class="btn" id="btnReloadBase">🔄 Recharger la base publiée</button><button type="button" class="btn ghost" id="btnMajServeur">🚀 MAJ serveur maintenant</button></div>
-      <div class="field" style="margin-top:12px"><label for="ghPat">Token GitHub (scope workflow / contents)</label><input id="ghPat" type="password" placeholder="ghp_… ou github_pat_…" autocomplete="off"></div>
-      <p class="small">MAJ auto 15 jours : NHTSA + RappelConso + Safety Gate + tes 5 sites + manual.json.</p>
-      <div class="divider"></div><h3>➕ Fiche manuelle</h3>
-      <div class="grid wide">
-        <div class="field"><label for="mTitre">Défaut / titre</label><input id="mTitre"></div>
-        <div class="field"><label for="mMarque">Marque(s)</label><input id="mMarque"></div>
-        <div class="field"><label for="mModele">Modèle(s)</label><input id="mModele"></div>
-        <div class="field"><label for="mMoteur">Motorisation</label><input id="mMoteur"></div>
-        <div class="field"><label for="mAnnees">Années</label><input id="mAnnees" placeholder="2015-2022"></div>
-        <div class="field"><label for="mDtc">Codes DTC</label><input id="mDtc" placeholder="P0016,P0521"></div>
-      </div>
-      <div class="field" style="margin-top:12px"><label for="mMeca">Mécanisme / causes</label><textarea id="mMeca"></textarea></div>
-      <div class="field" style="margin-top:12px"><label for="mConseq">Conséquences (une par ligne)</label><textarea id="mConseq"></textarea></div>
-      <label class="small" style="display:flex;gap:7px;margin:10px 0"><input type="checkbox" id="mFeu"> Risque d'incendie</label>
-      <div class="field"><label for="mUrl">Source (URL)</label><input id="mUrl"></div>
-      <button type="button" class="btn" id="btnAddFiche">💾 Ajouter</button>
-      <div class="divider"></div><h3>📥 Import universel — admin seul</h3>
-      <input type="file" id="fileImport" accept=".json,.txt,.md,.csv,.pdf,application/json,text/plain,application/pdf" multiple>
-      <div style="margin-top:10px"><button type="button" class="btn ghost" id="btnExportOverlay">📤 Exporter la base fusionnée</button><button type="button" class="btn red" id="btnLogout">🚪 Déconnexion</button></div>
+      <h2>🗄️ Base &amp; autovérification</h2>
+      <div id="baseStats" class="small">…</div>
+      <button type="button" class="btn" id="btnReloadBase">🔄 Recharger la base</button><button type="button" class="btn ghost" id="btnSelfCheck">🩺 Autovérification</button>
+      <div id="selfBox" style="margin-top:10px"></div>
+      <div class="divider"></div>
+      <h3>📥 Import (JSON / TXT / MD / CSV)</h3><input type="file" id="fileImport" accept=".json,.txt,.md,.csv" multiple>
+      <button type="button" class="btn ghost" id="btnExportOverlay">📤 Exporter mes ajouts</button>
+      <div class="divider"></div>
+      <h3>Token GitHub (optionnel — miroir dépôt)</h3><input id="ghPat" type="password" placeholder="ghp_… (facultatif)" autocomplete="off">
+      <button type="button" class="btn red" id="btnLogout">🚪 Déconnexion</button>
     </div>
   </section>
 </main>
 
 <div id="toasts"></div>
+<div id="lightbox"><div style="text-align:center;max-width:min(940px,95vw)"><img alt=""><p class="small" id="lbCap" style="color:#cfd6ff;margin-top:10px"></p><button type="button" class="btn ghost small" id="lbClose">✕ Fermer</button></div></div>
 
-<script>
-(function(){
-  "use strict";
-  var boot=document.getElementById("bootScreen");
-  var hide=function(){boot&&boot.classList.add("done");};
-  addEventListener("load",function(){setTimeout(hide,700);}); setTimeout(hide,4200);
-  document.addEventListener("click",function(e){
-    var nav=e.target.closest("[data-nav]"),adm=e.target.closest("[data-adm]");
-    if(nav)document.querySelectorAll("[data-nav]").forEach(function(x){x.classList.toggle("active",x===nav);});
-    if(adm)document.querySelectorAll("[data-adm]").forEach(function(x){x.classList.toggle("active",x===adm);});
-    if(e.target.closest("#btnPrint"))document.body.classList.add("print-etude");
-    if(e.target.closest("#btnCtxPrint"))document.body.classList.add("print-ctx");
-  },true);
-  addEventListener("afterprint",function(){document.body.classList.remove("print-etude","print-ctx");});
-})();
-</script>
-
-<script src="legal.js"></script>
 <script src="app.js"></script>
-<script src="data-engine.js"></script>
-<script src="power-engine.js"></script>
-<script src="expert-engine.js"></script>
-<script src="catalog-engine.js"></script>
-<script src="vin-engine.js"></script>
-<script src="photo-admin-engine.js"></script>
-<script src="github-fix-engine.js"></script>
-<script src="sync-engine.js"></script>
-
-<script>
-(function(){
-  "use strict";
-  var tries=0,banner=document.getElementById("engineBanner");
-  function show(msg){if(banner){banner.classList.remove("hidden");var m=document.getElementById("engineMsg");if(m&&msg)m.textContent=msg;}}
-  function load(cb){var s=document.createElement("script");
-    s.src="data-engine.js"+(tries>0?"?cb="+Date.now():"");
-    s.onload=function(){cb&&cb();};
-    s.onerror=function(){tries++;if(tries<3){setTimeout(function(){load(cb);},500);}else{show("data-engine.js introuvable (404) ou cache périmé. Vérifie que le fichier est committé, puis clique « Forcer ».");}};
-    document.body.appendChild(s);}
-  function watchdog(){setTimeout(function(){if(!window.KEV_BOOTED){if(tries<3){tries++;load(watchdog);}else{show("Le moteur de données n'a pas démarré. Clique « Forcer le rechargement ».");}}},2600);}
-  load(watchdog);
-  document.getElementById("engineForce").addEventListener("click",async function(){
-    try{if("caches" in window){var ks=await caches.keys();for(var i=0;i<ks.length;i++)await caches.delete(ks[i]);}
-        if(navigator.serviceWorker){var rs=await navigator.serviceWorker.getRegistrations();for(var j=0;j<rs.length;j++)await rs[j].unregister();}}catch(e){}
-    location.reload();});
-  document.getElementById("engineRetry").addEventListener("click",function(){tries=0;load(watchdog);});
-})();
-</script>
 </body>
 </html>
