@@ -84,7 +84,7 @@ def main():
         "stats": {"fiches": len(out),
                   "incendie": sum(1 for e in out if e["fire"])}
     }, ensure_ascii=False), encoding="utf-8")
-    print(f"✅ {len(out)} rappels publiés — version {version}")
+    print(f"{len(out)} rappels publiés — version {version}")
 
 
 if __name__ == "__main__":
