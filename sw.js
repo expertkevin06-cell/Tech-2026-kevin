@@ -1,6 +1,12 @@
-const CACHE = "kevtf-v8";
-const PRECACHE = ["./","index.html","app.js","legal.js","catalogue.js","data-engine.js","manifest.webmanifest","icon.svg","data/index.json","data/seed.json","data/visuel.json","data/revoques.json"];
-
+const CACHE = "kevtf-v9";
+const PRECACHE = [
+  "./", "index.html", "app.js", "legal.js", "data-engine.js", "power-engine.js",
+  "expert-engine.js", "catalog-engine.js", "vin-engine.js", "photo-admin-engine.js",
+  "github-fix-engine.js", "sync-engine.js",
+  "manifest.webmanifest", "icon.svg",
+  "icons/icon-192.png", "icons/icon-512.png", "icons/icon-192-maskable.png", "icons/icon-512-maskable.png",
+  "data/index.json", "data/seed.json", "data/visuel.json", "data/revoques.json"
+];
 self.addEventListener("install", e => {
   e.waitUntil((async () => {
     const c = await caches.open(CACHE);
