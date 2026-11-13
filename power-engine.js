@@ -1,12 +1,13 @@
 /* ============================================================================
-   KEV TECH & FIRE — POWER & MOTORISATION ENGINE v4
-   • Attribution AUTOMATIQUE de l'ÉNERGIE et de la PUISSANCE selon la
-     motorisation sélectionnée (documentée pour le modèle choisi).
-   • Filtre d'attribution réelle : le champ Motorisation ne propose que les
-     moteurs du couple marque+modèle (base moteurs / versions catalogue /
-     repli gamme marque) ; toute valeur non attribuable est effacée.
-   • Menu riche ouvert au focus/clic : énergie + cylindrée cm³ + puissances.
-   • Puissances = celles du moteur choisi ; auto-recalcul & auto-réparation.
+   KEV TECH & FIRE — POWER & MOTORISATION ENGINE v5
+   • ÉNERGIE déduite de la chaîne motorisation (energyOf) = source de vérité,
+     jamais d'une liste → plus aucune attribution erronée.
+   • Réconciliateur 1,5 s : force Énergie + Puissance cohérentes en continu,
+     quel que soit le module qui tente de les modifier.
+   • Correspondance moteur STRICTE (égalité / préfixe / 2 tokens) → plus de
+     croisement 1.5 TSI ↔ 1.5 BlueHDi.
+   • Puissance auto = documentée pour le modèle > version catalogue > principale.
+   • Puissances affichées = celles du moteur choisi uniquement.
    ============================================================================ */
 (() => {
 "use strict";
@@ -15,6 +16,7 @@ const N=s=>(s||"").toString().toLowerCase().normalize("NFD").replace(/[\u0300-\u
 const E=s=>(s||"").toString().replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const T=(m,ms=3500)=>{try{if(typeof toast==="function")toast(m,ms);else console.log(m);}catch(_){console.log(m);}};
 const EN_BADGE={essence:"🟡",diesel:"⚫",hybride:"🟢",electrique:"🔵"};
+const EN_OPTIONS=["essence","diesel","hybride","electrique"];
 
 /* ============ BASE MOTEURS DOCUMENTÉE ============ */
 const ENGINE_DB={
@@ -116,20 +118,22 @@ const POWER_TABLE={
 "tsi":[95,110,115,130,150,160,190,220,245,280,310,320],"tdi":[95,115,120,150,190,200,218,231,240,286,341],
 "crdi":[115,136,150,185,200],"skyactiv":[120,122,150,165,184,190]
 };
+
+/* ============ ÉNERGIE = source de vérité par la chaîne motorisation ============ */
 function energyOf(m){const t=N(m||"");
- if(/electrique|electric|bev|ev\b|kwh|e-|zero emission/.test(t))return "electrique";
- if(/hybrid|phev|hev|e-tech|plugin|rechargeable|hybride|iv\b|gte/.test(t))return "hybride";
- if(/diesel|tdi|hdi|dci|crdi|cdti|multijet|d-4d|skyactiv-d|blue dci|ecoblue/.test(t))return "diesel";
+ if(/electrique|electric|bev|ev\b|kwh|e-|zero emission|elroq|enyaq|e-208|e-2008|e-3008|e-308|e-24|e-4|e-500/.test(t))return "electrique";
+ if(/hybrid|phev|hev|e-tech|etech|plugin|rechargeable|hybride|iv\b|gte|b4|b5|b6|t8/.test(t))return "hybride";
+ if(/diesel|tdi|hdi|dci|crdi|cdti|multijet|d-4d|skyactiv-d|blue dci|bluehdi|ecoblue|ecoflex/.test(t))return "diesel";
  return "essence";}
 const ccOf=m=>{const f=parseFloat(String(m||""));return f?Math.round(f*1000):0;};
 function powersOfMotor(m){const t=N(m||"");for(const[k,v]of Object.entries(POWER_TABLE))if(t.includes(k)||k.includes(t))return v;return [];}
 const fmtCC=cc=>cc?cc+" cm³":"";
 
-/* ============ Attribution réelle marque+modèle ============ */
+/* ============ Attribution réelle + correspondance STRICTE ============ */
 function enginesFor(mk,mo){
   const out=[];const seen=new Set();
   const push=(e,src)=>{if(!e||!e.m)return;const k=N(e.m)+"|"+e.en;if(seen.has(k))return;seen.add(k);
-    out.push({m:e.m,cc:e.cc||0,en:e.en||energyOf(e.m),ch:(e.ch&&e.ch.length?e.ch:powersOfMotor(e.m)),src});};
+    out.push({m:e.m,cc:e.cc||0,en:energyOf(e.m)||e.en,ch:(e.ch&&e.ch.length?e.ch:powersOfMotor(e.m)),src});};
   ((typeof CATALOG!=="undefined"&&CATALOG.versions)||[]).forEach(v=>{
     if(N(v.marque)===N(mk)&&N(v.modele)===N(mo))(v.v||[]).forEach(r=>push({m:r[0]||"Électrique",cc:0,en:v.energie||"electrique",ch:[r[2]]},"catalogue"));});
   const key=N(mk)+"|"+N(mo);
@@ -140,69 +144,93 @@ function enginesFor(mk,mo){
   const order={catalogue:0,documenté:1,gamme:2};
   return out.sort((a,b)=>(order[a.src]??3)-(order[b.src]??3)||a.m.localeCompare(b.m));
 }
-function matchedEngine(mk,mo,mt){ if(!mt)return null;
-  return enginesFor(mk,mo).find(e=>N(e.m)===N(mt)||N(mt).includes(N(e.m))||N(e.m).includes(N(mt).split(" ")[0]))||null; }
-function isAttributable(mk,mo,mt){ return !mt || !!matchedEngine(mk,mo,mt); }
+function matchEngine(mk,mo,mt){ if(!mt)return null; const a=N(mt);
+  return enginesFor(mk,mo).find(e=>{const b=N(e.m);
+    if(b===a)return true;
+    if(a.startsWith(b)||b.startsWith(a))return true;
+    const ta=a.split(" "),tb=b.split(" ");
+    return ta[0]===tb[0]&&ta[1]&&tb[1]&&ta[1]===tb[1];})||null; }
+function isAttributable(mk,mo,mt){return !mt||!!matchEngine(mk,mo,mt);}
 
 /* ============ Puissances ============ */
 function knownPowers(mk,mo,mt){
-  const out=new Map();const eng=enginesFor(mk,mo);const mtN=N(mt||"");
+  const out=new Map();const mtN=N(mt||"");
   if(mtN){
-    const hit=matchedEngine(mk,mo,mt);
+    const hit=matchEngine(mk,mo,mt);
     if(hit)(hit.ch||[]).forEach(p=>out.set(p,`${hit.m} · ${hit.en} · ${p} ch`+(hit.cc?` · ${fmtCC(hit.cc)}`:"")));
     for(const[k,v]of Object.entries(POWER_TABLE))if(mtN.includes(k)||k.includes(mtN))v.forEach(p=>{if(!out.has(p))out.set(p,`Motorisation ${k} · ${p} ch`);});
-  } else {
-    eng.forEach(e=>(e.ch||[]).forEach(p=>{if(!out.has(p))out.set(p,`${e.m} · ${e.en} · ${p} ch`);}));
-  }
-  (typeof BASE!=="undefined"?BASE:[]).forEach(e=>{
-    if(N(e.marque||"").includes(N(mk))&&N(e.modele||"").includes(N(mo))&&Array.isArray(e.puissance_ch)){
+    (typeof BASE!=="undefined"?BASE:[]).forEach(e=>{
+      if(!N(e.marque||"").includes(N(mk))||!N(e.modele||"").includes(N(mo)))return;
       const lab=N(e.motorisation||"");
-      if(lab&&eng.some(x=>N(x.m).includes(lab.split(" ")[0])))
-        e.puissance_ch.forEach(p=>{if(!out.has(p))out.set(p,`Documentée (fiche) · ${p} ch`);});
-    }});
+      if(lab&&(N(mtN).includes(lab)||lab.includes(mtN.split(" ")[0])))
+        (Array.isArray(e.puissance_ch)?e.puissance_ch:[]).forEach(p=>{if(!out.has(p))out.set(p,`Documentée (fiche) · ${p} ch`);});});
+  } else {
+    enginesFor(mk,mo).forEach(e=>(e.ch||[]).forEach(p=>{if(!out.has(p))out.set(p,`${e.m} · ${e.en} · ${p} ch`);}));
+  }
   return [...out.entries()].sort((a,b)=>a[0]-b[0]).map(([ch,label])=>({ch,kw:Math.round(ch/1.35962),label}));
 }
-/* Puissance représentative AUTO : documentée pour le modèle > version catalogue > principale */
-function representativePower(eng,mk,mo){
-  if(!eng)return null;
-  const scores=new Map();
-  (typeof BASE!=="undefined"?BASE:[]).forEach(e=>{
-    if(!N(e.marque||"").includes(N(mk))||!N(e.modele||"").includes(N(mo)))return;
-    const lab=N(e.motorisation||"");
-    const labOk=!lab||N(eng.m).includes(lab.split(" ")[0])||lab.includes(N(eng.m).split(" ")[0]);
-    (Array.isArray(e.puissance_ch)?e.puissance_ch:[]).forEach(p=>{
-      if((eng.ch||[]).includes(p))scores.set(p,(scores.get(p)||0)+(labOk?2:1));});
-  });
-  if(scores.size)return [...scores.entries()].sort((a,b)=>b[1]-a[1])[0][0];
-  const ver=((typeof CATALOG!=="undefined"&&CATALOG.versions)||[]).find(v=>N(v.marque)===N(mk)&&N(v.modele)===N(mo));
-  if(ver){const hit=(ver.v||[]).find(r=>N(r[0]||"").includes(N(eng.m).split(" ")[0])||N(eng.m).includes(N(r[0]||"").split(" ")[0]));if(hit&&hit[2])return hit[2];}
-  return (eng.ch&&eng.ch.length)?eng.ch[0]:null;
+function representativePower(eng,mk,mo,mt){
+  if(eng){
+    const scores=new Map();
+    (typeof BASE!=="undefined"?BASE:[]).forEach(e=>{
+      if(!N(e.marque||"").includes(N(mk))||!N(e.modele||"").includes(N(mo)))return;
+      const lab=N(e.motorisation||"");
+      const labOk=!lab||N(eng.m).includes(lab.split(" ")[0])||lab.includes(N(eng.m).split(" ")[0]);
+      (Array.isArray(e.puissance_ch)?e.puissance_ch:[]).forEach(p=>{if((eng.ch||[]).includes(p))scores.set(p,(scores.get(p)||0)+(labOk?2:1));});});
+    if(scores.size)return [...scores.entries()].sort((a,b)=>b[1]-a[1])[0][0];
+    const ver=((typeof CATALOG!=="undefined"&&CATALOG.versions)||[]).find(v=>N(v.marque)===N(mk)&&N(v.modele)===N(mo));
+    if(ver){const hit=(ver.v||[]).find(r=>N(r[0]||"").includes(N(eng.m).split(" ")[0])||N(eng.m).includes(N(r[0]||"").split(" ")[0]));if(hit&&hit[2])return hit[2];}
+    if(eng.ch&&eng.ch.length)return eng.ch[0];
+  }
+  const kp=knownPowers(mk,mo,mt);return kp.length?kp[0].ch:null;
 }
 
-/* ============ ATTRIBUTION AUTO : énergie + puissance ============ */
-function showAutoBadge(eng,rp){
+/* ============ Badges ============ */
+function setBadges(en,rp){
   let b=D("autoAttrBadge");
-  if(!b){const anchor=D("cPuiss")?.parentNode||D("topAnalyse");if(!anchor)return;
-    b=document.createElement("span");b.id="autoAttrBadge";b.className="badge live";b.style.marginLeft="6px";anchor.appendChild(b);}
-  b.textContent=`⚙️ auto : ${EN_BADGE[eng.en]||""} ${eng.en} · ${rp??"—"} ch`;
+  const anchor=D("cPuiss")?.parentNode;
+  if(anchor){ if(!b){b=document.createElement("span");b.id="autoAttrBadge";b.className="badge live";b.style.marginLeft="6px";anchor.appendChild(b);}
+    b.textContent=`⚙️ auto : ${EN_BADGE[en]||""} ${en} · ${rp??"—"} ch`; }
+  let c=D("energyAuto");
+  const eAnchor=D("cEnergie")?.parentNode;
+  if(eAnchor){ if(!c){c=document.createElement("span");c.id="energyAuto";c.className="badge live";c.style.marginLeft="6px";eAnchor.appendChild(c);}
+    c.textContent=`${EN_BADGE[en]||""} énergie auto : ${en}`; }
 }
+
+/* ============ ATTRIBUTION AUTO (énergie par la chaîne + puissance cohérente) ============ */
 function autoAttribute(opts={}){
   const mk=D("cMarque")?.value||"",mo=D("cModele")?.value||"",mt=D("cMoteur")?.value||"";
   if(!mt)return false;
-  const eng=matchedEngine(mk,mo,mt); if(!eng)return false;
+  const en=energyOf(mt);                 // ← vérité : la chaîne motorisation
+  const eng=matchEngine(mk,mo,mt);
+  const rp=representativePower(eng,mk,mo,mt);
   let changed=false;
-  const ce=D("cEnergie"); if(ce&&ce.value!==eng.en){ce.value=eng.en;changed=true;}
-  const cp=D("cPuiss"); const rp=representativePower(eng,mk,mo);
+  const ce=D("cEnergie");
+  if(ce&&EN_OPTIONS.includes(en)&&ce.value!==en){ce.value=en;changed=true;}
+  const cp=D("cPuiss");
   if(cp&&rp!=null&&String(cp.value)!==String(rp)){cp.value=rp;changed=true;}
-  majPuiss(); renderEnginePanel(); showAutoBadge(eng,rp);
+  majPuiss();renderEnginePanel();setBadges(en,rp);
   if(window.CATALOG_ENGINE?.verifyAttribution)window.CATALOG_ENGINE.verifyAttribution();
-  if(changed&&opts.toast!==false)T(`⚙️ Attribution auto : ${eng.m} → ${eng.en} · ${rp??"?"} ch`);
+  if(changed&&opts.toast!==false)T(`⚙️ Attribution auto : ${mt} → ${en} · ${rp??"?"} ch`);
   return changed;
 }
-function autoFillIfEmpty(){
-  const mt=D("cMoteur")?.value||"";const cp=D("cPuiss");const ce=D("cEnergie");
-  if(!mt)return;
-  if((!cp?.value||!ce?.value))autoAttribute({toast:false});
+/* Réconciliateur : force la cohérence en continu, quel que soit le module auteur */
+function reconcile(){
+  const mt=D("cMoteur")?.value||"";if(!mt)return;
+  const mk=D("cMarque")?.value||"",mo=D("cModele")?.value||"";
+  const en=energyOf(mt);
+  const ce=D("cEnergie");let changed=false;
+  if(ce&&EN_OPTIONS.includes(en)&&ce.value!==en){ce.value=en;changed=true;}
+  const allowed=knownPowers(mk,mo,mt).map(p=>p.ch);
+  const cp=D("cPuiss");
+  if(cp&&allowed.length){
+    const cur=+cp.value;
+    if(!cur||!allowed.includes(cur)){const rp=representativePower(matchEngine(mk,mo,mt),mk,mo,mt)??allowed[0];
+      if(String(cp.value)!==String(rp)){cp.value=rp;changed=true;}}
+  }
+  if(changed){majPuiss();setBadges(en,+cp?.value||null);
+    if(window.CATALOG_ENGINE?.verifyAttribution)window.CATALOG_ENGINE.verifyAttribution();}
+  else setBadges(en,+cp?.value||null);
 }
 
 /* ============ UI ============ */
@@ -230,30 +258,27 @@ function renderEnginePanel(){
   ensureUI();
   const mk=D("cMarque")?.value||"",mo=D("cModele")?.value||"";
   const chips=D("engChips"),cnt=D("engCount");if(!chips)return;
-  if(!mk||!mo){if(cnt)cnt.textContent=0;chips.innerHTML=`<span class="chips-loading">Sélectionne marque + modèle : les motorisations réelles (essence·diesel·hybride·élec.) avec cylindrée et puissances s'afficheront ici.</span>`;return;}
+  if(!mk||!mo){if(cnt)cnt.textContent=0;chips.innerHTML=`<span class="chips-loading">Sélectionne marque + modèle : motorisations réelles (essence·diesel·hybride·élec.) avec cylindrée et puissances.</span>`;return;}
   const list=enginesFor(mk,mo);if(cnt)cnt.textContent=list.length;chips.__list=list;
   chips.innerHTML=list.length
     ?list.map((e,i)=>`<button type="button" data-eng="${i}" title="source : ${E(e.src)}">${EN_BADGE[e.en]||""} ${E(e.m)} · ${e.en} · ${(e.ch||[]).join("/")} ch${e.cc?` · ${fmtCC(e.cc)}`:""}</button>`).join("")
     :`<span class="chips-loading">Aucune motorisation documentée pour ce couple.</span>`;
 }
-function selectEngine(e){
-  D("cMoteur").value=e.m;
-  autoAttribute({toast:false});
-  D("cMoteur").dispatchEvent(new Event("change",{bubbles:true}));
-}
+function selectEngine(e){D("cMoteur").value=e.m;autoAttribute({toast:false});D("cMoteur").dispatchEvent(new Event("change",{bubbles:true}));}
 function sanitizeMotor(){
   const mk=D("cMarque")?.value||"",mo=D("cModele")?.value||"",mt=D("cMoteur")?.value||"";
   if(!mt||!mo)return;
-  if(!isAttributable(mk,mo,mt)){D("cMoteur").value="";D("cPuiss").value="";const b=D("autoAttrBadge");if(b)b.remove();majPuiss();}
+  if(!isAttributable(mk,mo,mt)){D("cMoteur").value="";D("cPuiss").value="";
+    D("autoAttrBadge")?.remove();D("energyAuto")?.remove();majPuiss();}
 }
 function hookUI(){
   ensureUI();
   ["cMarque","cModele"].forEach(id=>{const el=D(id);if(!el)return;
-    el.addEventListener("input",()=>{renderEnginePanel();sanitizeMotor();majPuiss();autoFillIfEmpty();});
-    el.addEventListener("change",()=>{renderEnginePanel();sanitizeMotor();majPuiss();autoFillIfEmpty();});});
+    el.addEventListener("input",()=>{renderEnginePanel();sanitizeMotor();majPuiss();reconcile();});
+    el.addEventListener("change",()=>{renderEnginePanel();sanitizeMotor();majPuiss();reconcile();});});
   const cm=D("cMoteur");
-  if(cm){ cm.addEventListener("change",()=>{sanitizeMotor();autoAttribute();});
-          cm.addEventListener("input",()=>{clearTimeout(cm.__t);cm.__t=setTimeout(()=>{sanitizeMotor();autoAttribute({toast:false});},300);}); }
+  if(cm){cm.addEventListener("change",()=>{sanitizeMotor();autoAttribute();});
+         cm.addEventListener("input",()=>{clearTimeout(cm.__t);cm.__t=setTimeout(()=>{sanitizeMotor();autoAttribute({toast:false});},250);});}
   D("engChips")?.addEventListener("click",e=>{const b=e.target.closest("[data-eng]");if(!b)return;
     const eng=D("engChips").__list?.[+b.dataset.eng];if(eng)selectEngine(eng);});
   D("puissChips")?.addEventListener("click",e=>{const b=e.target.closest("[data-ch]");if(!b)return;
@@ -313,10 +338,11 @@ function appendPower(hostId){
 function chain(){
   const _fill=window.fillDatalists,_majM=window.majModeles,_an=window.analyser,_cx=window.analyserContexte;
   window.fillDatalists=function(){if(_fill)_fill();ensureUI();renderEnginePanel();majPuiss();};
-  window.majModeles=function(){if(_majM)_majM();renderEnginePanel();sanitizeMotor();majPuiss();autoFillIfEmpty();};
+  window.majModeles=function(){if(_majM)_majM();renderEnginePanel();sanitizeMotor();majPuiss();reconcile();};
   window.majPuiss=majPuiss;
   window.analyser=async function(){if(_an)await _an();appendPower("rapport");};
   window.analyserContexte=async function(){if(_cx)await _cx();appendPower("ctxReport");};
+  if(window.CATALOG_ENGINE)window.CATALOG_ENGINE.syncEnergy=()=>autoAttribute({toast:false});
 }
 
 /* ============ boot ============ */
@@ -324,10 +350,10 @@ function boot(){
   if(!D("topAnalyse"))return setTimeout(boot,120);
   chain();hookUI();
   attachSuggest(D("cMoteur"),provMoteursRich);
-  setInterval(()=>{ if(D("de-panel")?.classList.contains("open"))return;
-    renderEnginePanel(); autoFillIfEmpty(); },4000);
-  console.log("⚙️ Power & Motorisation Engine v4 prêt (attribution auto énergie + puissance)");
+  setInterval(()=>{if(D("de-panel")?.classList.contains("open"))return;renderEnginePanel();reconcile();},1500);
+  reconcile();
+  console.log("⚙️ Power & Motorisation Engine v5 prêt (énergie par la chaîne + réconciliateur)");
 }
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot);else boot();
-window.POWER={knownPowers,majPuiss,enginesFor,matchedEngine,isAttributable,representativePower,autoAttribute,table:POWER_TABLE,db:ENGINE_DB,pool:MARQUE_POOL};
+window.POWER={knownPowers,majPuiss,enginesFor,matchEngine,isAttributable,representativePower,autoAttribute,reconcile,energyOf,table:POWER_TABLE,db:ENGINE_DB,pool:MARQUE_POOL};
 })();
