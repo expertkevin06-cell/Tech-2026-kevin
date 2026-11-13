@@ -1,21 +1,23 @@
 /* ============================================================================
-   KEV TECH & FIRE — POWER & MOTORISATION ENGINE v2
-   Prédiction ROBUSTE des motorisations corrélée au couple marque+modèle :
-   • Base moteurs documentée (ENGINE_DB) : cylindrée cm³ + énergie + puissances ch
-   • Pool de gamme par marque (repli) + motorisations issues de la base de pannes
-     + versions électriques du catalogue → toujours une proposition réelle
-   • Panneau « Motorisations corrélées » cliquable sous le sélecteur véhicule
-   • Menu de suggestion riche sur le champ Motorisation (énergie·ch·cm³)
-   • Puissances recalculées en fonction de la motorisation choisie
-   • Fait remonter les puissances dans la recherche, l'étude et le compte rendu
+   KEV TECH & FIRE — POWER & MOTORISATION ENGINE v3
+   • Filtre d'ATTRIBUTION RÉELLE : le champ Motorisation ne propose que les
+     motorisations documentées pour le couple marque+modèle (base moteurs,
+     versions catalogue, repli gamme marque). Toute motorisation non
+     attribuable au modèle est effacée automatiquement.
+   • Menu riche ouvert au focus / clic / changement de modèle :
+     énergie + cylindrée cm³ + TOUTES les puissances ch.
+   • Énergie pré-remplie selon la motorisation choisie.
+   • Puissances = celles du moteur choisi uniquement (plus d'amalgame).
+   • Panneau « Motorisations corrélées » + autovérification (catalog-engine).
    ============================================================================ */
 (() => {
 "use strict";
 const D=id=>document.getElementById(id);
 const N=s=>(s||"").toString().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g," ").trim();
 const E=s=>(s||"").toString().replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const EN_BADGE={essence:"🟡",diesel:"⚫",hybride:"🟢",electrique:"🔵"};
 
-/* ============ 1. BASE MOTEURS DOCUMENTÉE (marque|modèle → moteurs réels) ============ */
+/* ============ BASE MOTEURS DOCUMENTÉE (marque|modèle → moteurs réels) ============ */
 const ENGINE_DB={
 "skoda|fabia":[{m:"1.0 MPI",cc:999,en:"essence",ch:[75,80]},{m:"1.0 TSI",cc:999,en:"essence",ch:[95,110]},{m:"1.5 TSI",cc:1498,en:"essence",ch:[150]}],
 "skoda|octavia":[{m:"1.0 TSI",cc:999,en:"essence",ch:[110]},{m:"1.5 TSI",cc:1498,en:"essence",ch:[130,150]},{m:"2.0 TSI",cc:1984,en:"essence",ch:[190,204,245]},{m:"2.0 TDI",cc:1968,en:"diesel",ch:[115,150,200]},{m:"1.4 TSI iV PHEV",cc:1395,en:"hybride",ch:[204,245]}],
@@ -33,11 +35,11 @@ const ENGINE_DB={
 "peugeot|208":[{m:"1.2 PureTech",cc:1199,en:"essence",ch:[75,100,130]},{m:"1.5 BlueHDi",cc:1499,en:"diesel",ch:[100]},{m:"Électrique e-208",cc:0,en:"electrique",ch:[136,156]}],
 "peugeot|2008":[{m:"1.2 PureTech",cc:1199,en:"essence",ch:[100,130,155]},{m:"1.5 BlueHDi",cc:1499,en:"diesel",ch:[110,130]},{m:"Électrique e-2008",cc:0,en:"electrique",ch:[136,156]}],
 "peugeot|308":[{m:"1.2 PureTech",cc:1199,en:"essence",ch:[110,130]},{m:"1.5 BlueHDi",cc:1499,en:"diesel",ch:[130]},{m:"1.6 Hybrid PHEV",cc:1598,en:"hybride",ch:[180,225]},{m:"Électrique e-308",cc:0,en:"electrique",ch:[156]}],
-"peugeot|3008":[{m:"1.2 PureTech",cc:1199,en:"essence",ch:[130]},{m:"1.5 BlueHDi",cc:1499,en:"diesel",ch:[130]},{m:"1.6 Hybrid PHEV",cc:1598,en:"hybride",ch:[180,225,300]},{m:"Électrique e-3008",cc:0,en:"electrique",ch:[210,230,325]}],
-"peugeot|5008":[{m:"1.2 PureTech",cc:1199,en:"essence",ch:[130]},{m:"1.5 BlueHDi",cc:1499,en:"diesel",ch:[130]},{m:"1.6 Hybrid PHEV",cc:1598,en:"hybride",ch:[180,225]},{m:"Électrique e-5008",cc:0,en:"electrique",ch:[210,230]}],
+"peugeot|3008":[{m:"1.2 PureTech",cc:1199,en:"essence",ch:[130,180]},{m:"1.5 BlueHDi",cc:1499,en:"diesel",ch:[100,120,130]},{m:"1.6 BlueHDi",cc:1560,en:"diesel",ch:[120]},{m:"2.0 BlueHDi",cc:1997,en:"diesel",ch:[150,180]},{m:"1.6 Hybrid PHEV",cc:1598,en:"hybride",ch:[180,225,300]},{m:"Électrique e-3008",cc:0,en:"electrique",ch:[210,230,325]}],
+"peugeot|5008":[{m:"1.2 PureTech",cc:1199,en:"essence",ch:[130]},{m:"1.5 BlueHDi",cc:1499,en:"diesel",ch:[130]},{m:"2.0 BlueHDi",cc:1997,en:"diesel",ch:[150,180]},{m:"1.6 Hybrid PHEV",cc:1598,en:"hybride",ch:[180,225]},{m:"Électrique e-5008",cc:0,en:"electrique",ch:[210,230]}],
 "peugeot|508":[{m:"1.6 PureTech",cc:1598,en:"essence",ch:[180,225]},{m:"1.5 BlueHDi",cc:1499,en:"diesel",ch:[130]},{m:"2.0 BlueHDi",cc:1997,en:"diesel",ch:[180]},{m:"1.6 Hybrid PHEV",cc:1598,en:"hybride",ch:[180,225,360]}],
 "citroen|c3":[{m:"1.2 PureTech",cc:1199,en:"essence",ch:[82,100,110]},{m:"1.5 BlueHDi",cc:1499,en:"diesel",ch:[100]},{m:"Électrique ë-C3",cc:0,en:"electrique",ch:[113]}],
-"citroen|c4":[{m:"1.2 PureTech",cc:1199,en:"essence",ch:[100,130,155]},{m:"1.5 BlueHDi",cc:1499,en:"diesel",ch:[110,130]},{m:"Électrique e-C4",cc:0,en:"electrique",ch:[136,156]}],
+"citroen|c4":[{m:"1.2 PureTech",cc:1199,en:"essence",ch:[100,130,155]},{m:"1.5 BlueHDi",cc:1499,en:"diesel",ch:[110,130]},{m:"1.6 Hybrid",cc:1598,en:"hybride",ch:[145]},{m:"Électrique e-C4",cc:0,en:"electrique",ch:[136,156]}],
 "citroen|c5 aircross":[{m:"1.2 PureTech",cc:1199,en:"essence",ch:[130]},{m:"1.5 BlueHDi",cc:1499,en:"diesel",ch:[130]},{m:"1.6 Hybrid PHEV",cc:1598,en:"hybride",ch:[180,225]}],
 "renault|clio":[{m:"1.0 SCe",cc:999,en:"essence",ch:[65,75]},{m:"1.0 TCe",cc:999,en:"essence",ch:[90,100,110]},{m:"1.3 TCe",cc:1332,en:"essence",ch:[130,140]},{m:"1.5 Blue dCi",cc:1461,en:"diesel",ch:[85,100,115]},{m:"E-Tech Hybride",cc:1598,en:"hybride",ch:[140,145]}],
 "renault|captur":[{m:"1.0 TCe",cc:999,en:"essence",ch:[90,100,110]},{m:"1.3 TCe",cc:1332,en:"essence",ch:[130,140,150]},{m:"1.5 Blue dCi",cc:1461,en:"diesel",ch:[95,115]},{m:"E-Tech Hybride",cc:1598,en:"hybride",ch:[145,160]}],
@@ -45,19 +47,20 @@ const ENGINE_DB={
 "renault|kadjar":[{m:"1.3 TCe",cc:1332,en:"essence",ch:[140,160]},{m:"1.5 Blue dCi",cc:1461,en:"diesel",ch:[115]},{m:"1.7 Blue dCi",cc:1749,en:"diesel",ch:[150]}],
 "renault|austral":[{m:"1.2 E-Tech Hybride",cc:1199,en:"hybride",ch:[130,160,200]},{m:"1.3 TCe",cc:1332,en:"essence",ch:[140,160]}],
 "renault|arkana":[{m:"1.3 TCe",cc:1332,en:"essence",ch:[140,160]},{m:"1.6 E-Tech Hybride",cc:1598,en:"hybride",ch:[145,160]}],
+"renault|scenic":[{m:"1.3 TCe",cc:1332,en:"essence",ch:[140,160]},{m:"1.5 Blue dCi",cc:1461,en:"diesel",ch:[110,115]},{m:"1.7 Blue dCi",cc:1749,en:"diesel",ch:[150]},{m:"Électrique E-Tech",cc:0,en:"electrique",ch:[170,220]}],
 "dacia|duster":[{m:"1.0 TCe",cc:999,en:"essence",ch:[90,100,110]},{m:"1.3 TCe",cc:1332,en:"essence",ch:[130,150]},{m:"1.5 Blue dCi",cc:1461,en:"diesel",ch:[95,115]},{m:"Hybride 140",cc:1598,en:"hybride",ch:[140]}],
 "dacia|sandero":[{m:"1.0 SCe",cc:999,en:"essence",ch:[65,75]},{m:"1.0 TCe",cc:999,en:"essence",ch:[90,100,110]}],
 "dacia|jogger":[{m:"1.0 TCe",cc:999,en:"essence",ch:[100,110]},{m:"Hybride 140",cc:1598,en:"hybride",ch:[140]}],
-"toyota|yaris":[{m:"1.5 Hybride",cc:1490,en:"hybride",ch:[116,130]},{m:"1.0 VVT-i",cc:998,en:"essence",ch:[72]}],
+"toyota|yaris":[{m:"1.0 VVT-i",cc:998,en:"essence",ch:[72]},{m:"1.5 Hybride",cc:1490,en:"hybride",ch:[116,130]}],
 "toyota|corolla":[{m:"1.8 Hybride",cc:1798,en:"hybride",ch:[140]},{m:"2.0 Hybride",cc:1987,en:"hybride",ch:[180,196]}],
 "toyota|c-hr":[{m:"1.8 Hybride",cc:1798,en:"hybride",ch:[122,140]},{m:"2.0 Hybride",cc:1987,en:"hybride",ch:[180,198]}],
 "toyota|rav4":[{m:"2.5 Hybride",cc:2487,en:"hybride",ch:[218,222]},{m:"2.5 PHEV",cc:2487,en:"hybride",ch:[306]}],
-"ford|fiesta":[{m:"1.0 EcoBoost",cc:999,en:"essence",ch:[85,95,100,125,140,155]},{m:"1.1 Ti-VCT",cc:1084,en:"essence",ch:[75,85]},{m:"1.5 EcoBlue",cc:1499,en:"diesel",ch:[85,95]}],
+"ford|fiesta":[{m:"1.1 Ti-VCT",cc:1084,en:"essence",ch:[75,85]},{m:"1.0 EcoBoost",cc:999,en:"essence",ch:[85,95,100,125,140,155]},{m:"1.5 EcoBlue",cc:1499,en:"diesel",ch:[85,95]}],
 "ford|focus":[{m:"1.0 EcoBoost",cc:999,en:"essence",ch:[100,125,155]},{m:"1.5 EcoBlue",cc:1499,en:"diesel",ch:[95,120]},{m:"2.0 EcoBlue",cc:1997,en:"diesel",ch:[150]}],
 "ford|puma":[{m:"1.0 EcoBoost",cc:999,en:"essence",ch:[95,125,155,170]},{m:"1.5 EcoBlue",cc:1499,en:"diesel",ch:[95,120]}],
 "ford|kuga":[{m:"1.5 EcoBoost",cc:1499,en:"essence",ch:[120,150]},{m:"2.0 EcoBlue",cc:1997,en:"diesel",ch:[150,190]},{m:"2.5 Hybride",cc:2488,en:"hybride",ch:[190,225]},{m:"2.5 PHEV",cc:2488,en:"hybride",ch:[225]}],
 "bmw|serie 1":[{m:"1.5 118i",cc:1499,en:"essence",ch:[136,140]},{m:"2.0 120i",cc:1998,en:"essence",ch:[178,192]},{m:"2.0 118d",cc:1995,en:"diesel",ch:[150]},{m:"2.0 120d",cc:1995,en:"diesel",ch:[190]}],
-"bmw|serie 3":[{m:"2.0 320i",cc:1998,en:"essence",ch:[184,190]},{m:"2.0 330i",cc:1998,en:"essence",ch:[245,258]},{m:"2.0 320d",cc:1995,en:"diesel",ch:[190]},{m:"3.0 330d",cc:2993,en:"diesel",ch:[286]},{m:"2.0 330e PHEV",cc:1998,en:"hybride",ch:[292]}],
+"bmw|serie 3":[{m:"2.0 320i",cc:1998,en:"essence",ch:[184,190]},{m:"2.0 330i",cc:1998,en:"essence",ch:[245,258]},{m:"2.0 318d",cc:1995,en:"diesel",ch:[150]},{m:"2.0 320d",cc:1995,en:"diesel",ch:[190]},{m:"3.0 330d",cc:2993,en:"diesel",ch:[286]},{m:"2.0 330e PHEV",cc:1998,en:"hybride",ch:[292]}],
 "bmw|x1":[{m:"1.5 18i",cc:1499,en:"essence",ch:[136,140]},{m:"2.0 20i",cc:1998,en:"essence",ch:[192,204]},{m:"2.0 18d",cc:1995,en:"diesel",ch:[150]},{m:"2.0 23d",cc:1995,en:"diesel",ch:[211]}],
 "bmw|x3":[{m:"2.0 20i",cc:1998,en:"essence",ch:[184,190]},{m:"2.0 30i",cc:1998,en:"essence",ch:[245,252]},{m:"2.0 20d",cc:1995,en:"diesel",ch:[190]},{m:"3.0 30d",cc:2993,en:"diesel",ch:[286]}],
 "mercedes-benz|classe a":[{m:"1.3 A180",cc:1332,en:"essence",ch:[136]},{m:"1.3 A200",cc:1332,en:"essence",ch:[163]},{m:"2.0 A220",cc:1991,en:"essence",ch:[190]},{m:"2.0 A180d",cc:1950,en:"diesel",ch:[116]},{m:"2.0 A220d",cc:1950,en:"diesel",ch:[190]}],
@@ -66,7 +69,7 @@ const ENGINE_DB={
 "audi|a3":[{m:"1.0 30 TFSI",cc:999,en:"essence",ch:[110]},{m:"1.5 35 TFSI",cc:1498,en:"essence",ch:[150]},{m:"2.0 40 TFSI",cc:1984,en:"essence",ch:[190]},{m:"2.0 30 TDI",cc:1968,en:"diesel",ch:[116]},{m:"2.0 35 TDI",cc:1968,en:"diesel",ch:[150]}],
 "audi|a4":[{m:"2.0 35 TFSI",cc:1984,en:"essence",ch:[150]},{m:"2.0 40 TFSI",cc:1984,en:"essence",ch:[190,204]},{m:"2.0 35 TDI",cc:1968,en:"diesel",ch:[163]},{m:"2.0 40 TDI",cc:1968,en:"diesel",ch:[190,204]}],
 "audi|q3":[{m:"1.5 35 TFSI",cc:1498,en:"essence",ch:[150]},{m:"2.0 40 TFSI",cc:1984,en:"essence",ch:[190]},{m:"2.0 35 TDI",cc:1968,en:"diesel",ch:[150]},{m:"2.0 40 TDI",cc:1968,en:"diesel",ch:[193,200]}],
-"hyundai|i20":[{m:"1.0 T-GDi",cc:998,en:"essence",ch:[84,100,120]},{m:"1.2 MPI",cc:1197,en:"essence",ch:[84]}],
+"hyundai|i20":[{m:"1.2 MPI",cc:1197,en:"essence",ch:[84]},{m:"1.0 T-GDi",cc:998,en:"essence",ch:[84,100,120]}],
 "hyundai|i30":[{m:"1.0 T-GDi",cc:998,en:"essence",ch:[100,120]},{m:"1.5 T-GDi",cc:1482,en:"essence",ch:[160]},{m:"1.6 CRDi",cc:1598,en:"diesel",ch:[115,136]}],
 "hyundai|tucson":[{m:"1.6 T-GDi",cc:1598,en:"essence",ch:[150,180]},{m:"1.6 CRDi",cc:1598,en:"diesel",ch:[115,136]},{m:"1.6 Hybride",cc:1598,en:"hybride",ch:[230]},{m:"1.6 PHEV",cc:1598,en:"hybride",ch:[265]}],
 "kia|ceed":[{m:"1.0 T-GDi",cc:998,en:"essence",ch:[100,120]},{m:"1.5 T-GDi",cc:1482,en:"essence",ch:[160]},{m:"1.6 CRDi",cc:1598,en:"diesel",ch:[115,136]},{m:"1.6 Hybride",cc:1580,en:"hybride",ch:[141]}],
@@ -77,12 +80,10 @@ const ENGINE_DB={
 "volvo|xc40":[{m:"1.5 T3",cc:1477,en:"essence",ch:[163]},{m:"2.0 B4",cc:1969,en:"hybride",ch:[197]},{m:"2.0 B5",cc:1969,en:"hybride",ch:[250]},{m:"Électrique Recharge",cc:0,en:"electrique",ch:[238,408]}],
 "volvo|xc60":[{m:"2.0 B4",cc:1969,en:"hybride",ch:[197]},{m:"2.0 B5",cc:1969,en:"hybride",ch:[250]},{m:"2.0 B6 PHEV",cc:1969,en:"hybride",ch:[350]},{m:"2.0 T8 PHEV",cc:1969,en:"hybride",ch:[455,462]}]
 };
-
-/* ============ 2. POOL DE GAMME PAR MARQUE (repli documenté) ============ */
 const MARQUE_POOL={
 "skoda":[{m:"1.0 TSI",cc:999,en:"essence",ch:[95,110,115]},{m:"1.5 TSI",cc:1498,en:"essence",ch:[130,150]},{m:"2.0 TSI",cc:1984,en:"essence",ch:[190,245]},{m:"2.0 TDI",cc:1968,en:"diesel",ch:[115,150,200]}],
 "volkswagen":[{m:"1.0 TSI",cc:999,en:"essence",ch:[95,110,115]},{m:"1.5 TSI",cc:1498,en:"essence",ch:[130,150]},{m:"2.0 TSI",cc:1984,en:"essence",ch:[190,245,320]},{m:"2.0 TDI",cc:1968,en:"diesel",ch:[115,150,200,240]}],
-"peugeot":[{m:"1.2 PureTech",cc:1199,en:"essence",ch:[82,100,110,130,155]},{m:"1.6 PureTech",cc:1598,en:"essence",ch:[180,225]},{m:"1.5 BlueHDi",cc:1499,en:"diesel",ch:[100,110,130]},{m:"2.0 BlueHDi",cc:1997,en:"diesel",ch:[180]},{m:"1.6 Hybrid PHEV",cc:1598,en:"hybride",ch:[180,225,300]}],
+"peugeot":[{m:"1.2 PureTech",cc:1199,en:"essence",ch:[82,100,110,130,155]},{m:"1.6 PureTech",cc:1598,en:"essence",ch:[180,225]},{m:"1.5 BlueHDi",cc:1499,en:"diesel",ch:[100,110,130]},{m:"2.0 BlueHDi",cc:1997,en:"diesel",ch:[150,180]},{m:"1.6 Hybrid PHEV",cc:1598,en:"hybride",ch:[180,225,300]}],
 "citroen":[{m:"1.2 PureTech",cc:1199,en:"essence",ch:[82,100,110,130,155]},{m:"1.5 BlueHDi",cc:1499,en:"diesel",ch:[100,110,130]},{m:"1.6 Hybrid PHEV",cc:1598,en:"hybride",ch:[180,225]}],
 "renault":[{m:"1.0 TCe",cc:999,en:"essence",ch:[90,100,110]},{m:"1.3 TCe",cc:1332,en:"essence",ch:[130,140,150,160]},{m:"1.5 Blue dCi",cc:1461,en:"diesel",ch:[85,95,100,115]},{m:"1.7 Blue dCi",cc:1749,en:"diesel",ch:[150]},{m:"E-Tech Hybride",cc:1598,en:"hybride",ch:[140,145,160,200]}],
 "dacia":[{m:"1.0 TCe",cc:999,en:"essence",ch:[90,100,110]},{m:"1.3 TCe",cc:1332,en:"essence",ch:[130,150]},{m:"1.5 Blue dCi",cc:1461,en:"diesel",ch:[95,115]},{m:"Hybride 140",cc:1598,en:"hybride",ch:[140]}],
@@ -97,8 +98,6 @@ const MARQUE_POOL={
 "fiat":[{m:"1.0 Hybrid",cc:999,en:"hybride",ch:[70]},{m:"1.2",cc:1242,en:"essence",ch:[69,75]},{m:"1.3 Multijet",cc:1248,en:"diesel",ch:[95]}],
 "volvo":[{m:"1.5 T3",cc:1477,en:"essence",ch:[163]},{m:"2.0 B4",cc:1969,en:"hybride",ch:[197]},{m:"2.0 B5",cc:1969,en:"hybride",ch:[250]},{m:"2.0 T8 PHEV",cc:1969,en:"hybride",ch:[455,462]}]
 };
-
-/* ============ 3. Helpers énergie / cylindrée / puissances ============ */
 const POWER_TABLE={
 "1.2 puretech":[82,100,110,130,136,155,180,215,225,250],"1.6 thp":[150,155,165,170,200,205,270],
 "1.5 bluehdi":[100,120,130],"1.6 bluehdi":[100,120,150,180],"2.0 bluehdi":[150,180,204],
@@ -120,138 +119,140 @@ const POWER_TABLE={
 };
 function energyOf(m){const t=N(m||"");
  if(/electrique|electric|bev|ev\b|kwh|e-|zero emission/.test(t))return "electrique";
- if(/hybrid|phev|hev|e-tech|plugin|rechargeable|hybride|iv\b|gte|gt e/.test(t))return "hybride";
- if(/diesel|tdi|hdi|dci|crdi|cdti|jdtd|multijet|d-4d|skyactiv-d|blue dci|ecoblue/.test(t))return "diesel";
+ if(/hybrid|phev|hev|e-tech|plugin|rechargeable|hybride|iv\b|gte/.test(t))return "hybride";
+ if(/diesel|tdi|hdi|dci|crdi|cdti|multijet|d-4d|skyactiv-d|blue dci|ecoblue/.test(t))return "diesel";
  return "essence";}
-function ccOf(m){const t=String(m||"");const f=parseFloat(t);if(!f)return 0;return Math.round(f*1000);}
-function powersOfMotor(m){const t=N(m||"");for(const[k,v]of Object.entries(POWER_TABLE)){if(t.includes(k)||k.includes(t))return v;}return [];}
+const ccOf=m=>{const f=parseFloat(String(m||""));return f?Math.round(f*1000):0;};
+function powersOfMotor(m){const t=N(m||"");for(const[k,v]of Object.entries(POWER_TABLE))if(t.includes(k)||k.includes(t))return v;return [];}
 const fmtCC=cc=>cc?cc+" cm³":"";
 
-/* ============ 4. Moteurs corrélés pour un couple marque+modèle ============ */
+/* ============ ATTRIBUTION RÉELLE : moteurs du couple marque+modèle ============ */
 function enginesFor(mk,mo){
   const out=[];const seen=new Set();
   const push=(e,src)=>{if(!e||!e.m)return;const k=N(e.m)+"|"+e.en;if(seen.has(k))return;seen.add(k);
     out.push({m:e.m,cc:e.cc||0,en:e.en||energyOf(e.m),ch:(e.ch&&e.ch.length?e.ch:powersOfMotor(e.m)),src});};
-  // a) versions électriques / hybrides du catalogue
   ((typeof CATALOG!=="undefined"&&CATALOG.versions)||[]).forEach(v=>{
     if(N(v.marque)===N(mk)&&N(v.modele)===N(mo))(v.v||[]).forEach(r=>push({m:r[0]||"Électrique",cc:0,en:v.energie||"electrique",ch:[r[2]]},"catalogue"));});
-  // b) base moteurs documentée (exact puis fuzzy modèle)
   const key=N(mk)+"|"+N(mo);
   (ENGINE_DB[key]||[]).forEach(e=>push(e,"documenté"));
   if(!ENGINE_DB[key])for(const[k,arr]of Object.entries(ENGINE_DB)){const[bm,bmo]=k.split("|");
-    if(bm===N(mk)&&(N(mo).includes(bmo)||bmo.includes(N(mo))))arr.forEach(e=>push(e,"documenté"));}
-  // c) motorisations issues de la base de pannes pour ce véhicule
-  (typeof BASE!=="undefined"?BASE:[]).forEach(e=>{
-    if(N(e.marque||"").includes(N(mk))&&N(e.modele||"").includes(N(mo))&&e.motorisation)
-      push({m:e.motorisation,cc:ccOf(e.motorisation),en:e.energie||energyOf(e.motorisation),
-            ch:Array.isArray(e.puissance_ch)?e.puissance_ch:powersOfMotor(e.motorisation)},"base");});
-  // d) repli : pool de gamme marque
+    if(bm===N(mk)&&N(mo)&&bmo&&(N(mo)===bmo||N(mo).startsWith(bmo)||bmo.startsWith(N(mo))))arr.forEach(e=>push(e,"documenté"));}
   if(out.length<2)(MARQUE_POOL[N(mk)]||[]).forEach(e=>push(e,"gamme"));
-  const order={documenté:0,catalogue:1,base:2,gamme:3};
-  return out.sort((a,b)=>order[a.src]-order[b.src]||a.m.localeCompare(b.m));
+  const order={catalogue:0,documenté:1,gamme:2};
+  return out.sort((a,b)=>(order[a.src]??3)-(order[b.src]??3)||a.m.localeCompare(b.m));
 }
+function isAttributable(mk,mo,mt){ if(!mt)return true;
+  return enginesFor(mk,mo).some(e=>N(e.m)===N(mt)||N(mt).includes(N(e.m))||N(e.m).includes(N(mt).split(" ")[0])); }
 
-/* ============ 5. Puissances connues (étendues aux moteurs documentés) ============ */
-function knownPowers(marque,modele,moteur){
-  const out=new Map();
-  const ver=((typeof CATALOG!=="undefined"&&CATALOG.versions)||[]).find(v=>N(v.marque)===N(marque)&&N(v.modele)===N(modele));
-  if(ver)(ver.v||[]).forEach(r=>out.set(r[2],`${r[0]||"Version"} · ${r[2]} ch (${r[1]} kW)`+(r[3]?` · ${r[3]}`:"")));
-  const eng=enginesFor(marque,modele);
-  const mt=N(moteur||"");
-  eng.forEach(e=>{ if(!mt||N(e.m).includes(mt)||mt.includes(N(e.m).split(" ")[0])) (e.ch||[]).forEach(p=>{ if(!out.has(p))out.set(p,`${e.m} · ${e.en} · ${p} ch`+(e.cc?` · ${fmtCC(e.cc)}`:"")); }); });
+/* ============ PUISSANCES = celles du moteur choisi (sinon union documentée) ============ */
+function knownPowers(mk,mo,mt){
+  const out=new Map();const eng=enginesFor(mk,mo);const mtN=N(mt||"");
+  if(mtN){
+    const hit=eng.find(e=>N(e.m)===mtN||mtN.includes(N(e.m))||N(e.m).includes(mtN.split(" ")[0]));
+    if(hit)(hit.ch||[]).forEach(p=>out.set(p,`${hit.m} · ${hit.en} · ${p} ch`+(hit.cc?` · ${fmtCC(hit.cc)}`:"")));
+    for(const[k,v]of Object.entries(POWER_TABLE))if(mtN.includes(k)||k.includes(mtN))v.forEach(p=>{if(!out.has(p))out.set(p,`Motorisation ${k} · ${p} ch`);});
+  } else {
+    eng.forEach(e=>(e.ch||[]).forEach(p=>{if(!out.has(p))out.set(p,`${e.m} · ${e.en} · ${p} ch`);}));
+  }
   (typeof BASE!=="undefined"?BASE:[]).forEach(e=>{
-    if(N(e.marque||"").includes(N(marque))&&N(e.modele||"").includes(N(modele))&&Array.isArray(e.puissance_ch))
-      e.puissance_ch.forEach(p=>{if(!out.has(p))out.set(p,`Documentée (fiche) · ${p} ch`);});});
-  if(mt)for(const[k,pws]of Object.entries(POWER_TABLE))if(mt.includes(k)||k.includes(mt))pws.forEach(p=>{if(!out.has(p))out.set(p,`Motorisation ${k} · ${p} ch`);});
+    if(N(e.marque||"").includes(N(mk))&&N(e.modele||"").includes(N(mo))&&Array.isArray(e.puissance_ch)){
+      const lab=N(e.motorisation||"");
+      if(lab&&eng.some(x=>N(x.m).includes(lab.split(" ")[0])))
+        e.puissance_ch.forEach(p=>{if(!out.has(p))out.set(p,`Documentée (fiche) · ${p} ch`);});
+    }});
   return [...out.entries()].sort((a,b)=>a[0]-b[0]).map(([ch,label])=>({ch,kw:Math.round(ch/1.35962),label}));
 }
 
-/* ============ 6. UI : panneau motorisations + chips puissances ============ */
+/* ============ UI ============ */
 function ensureUI(){
   if(!D("dlPuiss")){const dl=document.createElement("datalist");dl.id="dlPuiss";document.body.appendChild(dl);}
   const cp=D("cPuiss");if(cp)cp.setAttribute("list","dlPuiss");
-  const cm=D("cMoteur");if(cm)cm.removeAttribute("list"); // on pilote la motorisation via notre menu riche
-  if(!D("puissWrap")){const grid=D("topAnalyse")?.querySelector(".grid");if(grid){const w=document.createElement("div");w.id="puissWrap";w.className="field";w.style.marginTop="10px";
-    w.innerHTML=`<label>Puissances référencées <span class="badge" id="puissCount">0</span></label><div class="chips" id="puissChips"></div>`;grid.insertAdjacentElement("afterend",w);}}
-  if(!D("engineWrap")){const anchor=D("puissWrap")||D("topAnalyse")?.querySelector(".grid");if(anchor){const w=document.createElement("div");w.id="engineWrap";w.className="field";w.style.marginTop="10px";
-    w.innerHTML=`<label>Motorisations corrélées (essence · diesel · hybride · élec.) <span class="badge" id="engCount">0</span></label><div class="chips" id="engChips"></div>`;anchor.insertAdjacentElement("afterend",w);}}
+  const cm=D("cMoteur");
+  if(cm){cm.removeAttribute("list");cm.placeholder="Choisis une motorisation du modèle…";}
+  if(!D("puissWrap")){const g=D("topAnalyse")?.querySelector(".grid");if(g){const w=document.createElement("div");w.id="puissWrap";w.className="field";w.style.marginTop="10px";
+    w.innerHTML=`<label>Puissances du moteur choisi <span class="badge" id="puissCount">0</span></label><div class="chips" id="puissChips"></div>`;g.insertAdjacentElement("afterend",w);}}
+  if(!D("engineWrap")){const a=D("puissWrap")||D("topAnalyse")?.querySelector(".grid");if(a){const w=document.createElement("div");w.id="engineWrap";w.className="field";w.style.marginTop="10px";
+    w.innerHTML=`<label>Motorisations réelles du modèle <span class="badge" id="engCount">0</span></label><div class="chips" id="engChips"></div>`;a.insertAdjacentElement("afterend",w);}}
 }
 function majPuiss(){
   ensureUI();
   const mk=D("cMarque")?.value||"",mo=D("cModele")?.value||"",mt=D("cMoteur")?.value||"";
   const powers=knownPowers(mk,mo,mt);
   const dl=D("dlPuiss");if(dl)dl.innerHTML=powers.map(p=>`<option value="${p.ch}">`).join("");
-  const chips=D("puissChips"),cnt=D("puissCount");
-  if(cnt)cnt.textContent=powers.length;
+  const chips=D("puissChips"),cnt=D("puissCount");if(cnt)cnt.textContent=powers.length;
   if(chips)chips.innerHTML=powers.length
     ?powers.slice(0,16).map(p=>`<button type="button" data-ch="${p.ch}" title="${E(p.label)}">${p.ch} ch</button>`).join("")
-    :`<span class="chips-loading">Aucune puissance — sélectionne marque+modèle (+motorisation).</span>`;
+    :`<span class="chips-loading">${mt?"Aucune puissance pour ce moteur.":"Choisis d'abord une motorisation du modèle (ci-dessus)."}</span>`;
   return powers;
 }
 function renderEnginePanel(){
   ensureUI();
   const mk=D("cMarque")?.value||"",mo=D("cModele")?.value||"";
   const chips=D("engChips"),cnt=D("engCount");if(!chips)return;
-  if(!mk||!mo){cnt&&(cnt.textContent=0);chips.innerHTML=`<span class="chips-loading">Sélectionne une marque puis un modèle pour voir les motorisations réelles (cylindrée + énergie + puissances).</span>`;return;}
-  const list=enginesFor(mk,mo);
-  cnt&&(cnt.textContent=list.length);
-  const enBadge={essence:"🟡",diesel:"⚫",hybride:"🟢",electrique:"🔵"};
-  chips.innerHTML=list.length
-    ?list.map((e,i)=>`<button type="button" data-eng="${i}" title="${E(e.src)}">${enBadge[e.en]||""} ${E(e.m)} · ${e.en} · ${(e.ch||[]).join("/")} ch${e.cc?` · ${fmtCC(e.cc)}`:""}</button>`).join("")
-    :`<span class="chips-loading">Aucune motorisation documentée pour ce couple — propositions de gamme affichées si disponibles.</span>`;
+  if(!mk||!mo){if(cnt)cnt.textContent=0;chips.innerHTML=`<span class="chips-loading">Sélectionne marque + modèle : les motorisations réelles (essence·diesel·hybride·élec.) avec cylindrée et puissances s'afficheront ici.</span>`;return;}
+  const list=enginesFor(mk,mo);if(cnt)cnt.textContent=list.length;
   chips.__list=list;
+  chips.innerHTML=list.length
+    ?list.map((e,i)=>`<button type="button" data-eng="${i}" title="source : ${E(e.src)}">${EN_BADGE[e.en]||""} ${E(e.m)} · ${e.en} · ${(e.ch||[]).join("/")} ch${e.cc?` · ${fmtCC(e.cc)}`:""}</button>`).join("")
+    :`<span class="chips-loading">Aucune motorisation documentée pour ce couple.</span>`;
+}
+function selectEngine(e){
+  D("cMoteur").value=e.m;
+  if(D("cEnergie"))D("cEnergie").value=e.en;
+  majPuiss();renderEnginePanel();
+  if(window.CATALOG_ENGINE?.verifyAttribution)window.CATALOG_ENGINE.verifyAttribution();
+  D("cMoteur").dispatchEvent(new Event("change",{bubbles:true}));
 }
 function hookUI(){
   ensureUI();
   ["cMarque","cModele"].forEach(id=>{const el=D(id);if(!el)return;
-    el.addEventListener("input",()=>{renderEnginePanel();majPuiss();});
-    el.addEventListener("change",()=>{renderEnginePanel();majPuiss();});});
-  D("cMoteur")?.addEventListener("change",()=>{
-    const mk=D("cMarque")?.value||"",mo=D("cModele")?.value||"",mt=D("cMoteur")?.value||"";
-    const hit=enginesFor(mk,mo).find(e=>N(e.m)===N(mt)||N(mt).includes(N(e.m)));
-    if(hit&&D("cEnergie")&&!D("cEnergie").value)D("cEnergie").value=hit.en;
-    majPuiss();});
+    el.addEventListener("input",()=>{renderEnginePanel();sanitizeMotor();majPuiss();});
+    el.addEventListener("change",()=>{renderEnginePanel();sanitizeMotor();majPuiss();});});
   D("engChips")?.addEventListener("click",e=>{const b=e.target.closest("[data-eng]");if(!b)return;
-    const eng=D("engChips").__list[+b.dataset.eng];if(!eng)return;
-    D("cMoteur").value=eng.m; if(D("cEnergie"))D("cEnergie").value=eng.en;
-    majPuiss(); renderEnginePanel();});
+    const eng=D("engChips").__list?.[+b.dataset.eng];if(eng)selectEngine(eng);});
   D("puissChips")?.addEventListener("click",e=>{const b=e.target.closest("[data-ch]");if(!b)return;
     const cp=D("cPuiss");if(cp){cp.value=b.dataset.ch;cp.dispatchEvent(new Event("input"));cp.dispatchEvent(new Event("change"));}});
   renderEnginePanel();majPuiss();
 }
+function sanitizeMotor(){
+  const mk=D("cMarque")?.value||"",mo=D("cModele")?.value||"",mt=D("cMoteur")?.value||"";
+  if(!mt||!mo)return;
+  if(!isAttributable(mk,mo,mt)){D("cMoteur").value="";D("cPuiss").value="";majPuiss();}
+}
 
-/* ============ 7. Menu riche Motorisation (suggestion corrélée) ============ */
+/* ============ Menu riche Motorisation (ouvert au focus/clic + filtré modèle) ============ */
 function provMoteursRich(){
   const mk=D("cMarque")?.value||"",mo=D("cModele")?.value||"",cur=N(D("cMoteur")?.value||"");
   return enginesFor(mk,mo)
     .filter(e=>!cur||N(e.m).includes(cur)||cur.includes(N(e.m).split(" ")[0]))
-    .map(e=>({value:e.m,label:`${e.m} · ${e.en} · ${(e.ch||[]).join("/")} ch${e.cc?` · ${fmtCC(e.cc)}`:""}`,hint:e.src,engine:e}));
+    .map(e=>({value:e.m,label:`${EN_BADGE[e.en]||""} ${e.m} · ${e.en} · ${(e.ch||[]).join("/")} ch${e.cc?` · ${fmtCC(e.cc)}`:""}`,hint:e.src,engine:e}));
 }
 function attachSuggest(input,provider){
   if(!input||input.__sgDone)return;input.__sgDone=true;
   const wrap=document.createElement("div");wrap.style.position="relative";
   input.parentNode.insertBefore(wrap,input);wrap.appendChild(input);
   const list=document.createElement("div");
-  list.style.cssText="position:absolute;top:calc(100% + 3px);left:0;right:0;z-index:70;max-height:240px;overflow:auto;background:rgba(8,12,32,.98);border:1px solid var(--acc,#00e5ff);border-radius:12px;display:none;box-shadow:0 16px 44px rgba(0,0,0,.55)";
+  list.style.cssText="position:absolute;top:calc(100% + 3px);left:0;right:0;z-index:80;max-height:260px;overflow:auto;background:rgba(8,12,32,.98);border:1px solid var(--acc,#00e5ff);border-radius:12px;display:none;box-shadow:0 16px 44px rgba(0,0,0,.55)";
   wrap.appendChild(list);
-  input.addEventListener("input",()=>{let items=[];try{items=provider().slice(0,10);}catch(_){}
-    if(!items.length){list.style.display="none";return;}
-    list.innerHTML=items.map((x,i)=>`<div data-i="${i}" style="padding:8px 11px;cursor:pointer;font-size:.8rem;border-bottom:1px solid rgba(255,255,255,.07)">${E(x.label)}${x.hint?` <span style="color:#93a0d6;font-size:.66rem">[${E(x.hint)}]</span>`:""}</div>`).join("");
-    list.__items=items;list.style.display="block";});
+  const open=()=>{let items=[];try{items=provider().slice(0,12);}catch(_){}
+    if(!items.length){list.innerHTML=`<div style="padding:9px 11px;font-size:.76rem;color:#93a0d6">Aucune motorisation réelle pour ce modèle — vérifie marque/modèle.</div>`;list.style.display="block";return;}
+    list.innerHTML=items.map((x,i)=>`<div data-i="${i}" style="padding:9px 11px;cursor:pointer;font-size:.8rem;border-bottom:1px solid rgba(255,255,255,.07)">${E(x.label)} <span style="color:#93a0d6;font-size:.66rem">[${E(x.hint)}]</span></div>`).join("");
+    list.__items=items;list.style.display="block";};
+  input.addEventListener("focus",open);
+  input.addEventListener("click",open);
+  input.addEventListener("input",open);
   list.addEventListener("mousedown",e=>{const d=e.target.closest("[data-i]");if(!d)return;e.preventDefault();
-    const it=list.__items[+d.dataset.i];input.value=it.value;list.style.display="none";
-    if(it.engine&&D("cEnergie")&&!D("cEnergie").value)D("cEnergie").value=it.engine.en;
-    input.dispatchEvent(new Event("input",{bubbles:true}));input.dispatchEvent(new Event("change",{bubbles:true}));majPuiss();});
+    const it=list.__items[+d.dataset.i];list.style.display="none";if(it.engine)selectEngine(it.engine);else{input.value=it.value;input.dispatchEvent(new Event("change",{bubbles:true}));}});
   input.addEventListener("blur",()=>setTimeout(()=>list.style.display="none",160));
 }
 
-/* ============ 8. Note puissance sous chaque fiche + rapports ============ */
+/* ============ Notes + rapports ============ */
 function powerNote(e){
   const mk=(e.marque||"").split("/")[0].trim(),mo=(e.modele||"").split("/")[0].trim();
   if(!mk||/multi|tous/i.test(mk))return "";
   const p=knownPowers(mk,mo,e.motorisation||"");
   if(!p.length)return "";
-  return `<div class="de-note" style="color:#93a0d6;font-size:.72rem;margin:2px 0 8px">⚙️ Puissances connues : ${p.slice(0,8).map(x=>x.ch+" ch").join(" · ")}</div>`;
+  return `<div class="de-note" style="color:#93a0d6;font-size:.72rem;margin:2px 0 8px">⚙️ Puissances : ${p.slice(0,8).map(x=>x.ch+" ch").join(" · ")}</div>`;
 }
 function appendPower(hostId){
   const host=D(hostId);if(!host)return;
@@ -260,51 +261,32 @@ function appendPower(hostId){
   const eng=enginesFor(v.marque||"",v.modele||"");
   const powers=knownPowers(v.marque||"",v.modele||"",v.moteur||"");
   if(!eng.length&&!powers.length)return;
-  const enBadge={essence:"🟡",diesel:"⚫",hybride:"🟢",electrique:"🔵"};
   const sec=document.createElement("div");
-  sec.innerHTML=`<h3>⚙️ Motorisations &amp; puissances corrélées (${eng.length} moteurs · ${powers.length} puissances)</h3>
+  sec.innerHTML=`<h3>⚙️ Motorisations &amp; puissances attribuées (${eng.length} moteurs · ${powers.length} puissances)</h3>
    ${eng.length?`<table><thead><tr><th>Motorisation</th><th>Énergie</th><th>Cylindrée</th><th>Puissances</th><th>Source</th></tr></thead><tbody>`+
-     eng.slice(0,12).map(e=>`<tr><td><b>${E(e.m)}</b></td><td>${enBadge[e.en]||""} ${e.en}</td><td>${fmtCC(e.cc)||"—"}</td><td>${(e.ch||[]).join("/")} ch</td><td class="small">${E(e.src)}</td></tr>`).join("")+`</tbody></table>`:""}
-   ${powers.length?`<p class="small"><b>Puissances retenues :</b> ${powers.slice(0,12).map(x=>x.ch+" ch").join(" · ")}</p>`:""}
-   <p class="small">Corrélation marque+modèle+motorisation : les puissances proposées proviennent des moteurs documentés pour ce véhicule (ou de la gamme marque à défaut).</p>`;
+     eng.slice(0,12).map(e=>`<tr><td><b>${E(e.m)}</b></td><td>${EN_BADGE[e.en]||""} ${e.en}</td><td>${fmtCC(e.cc)||"—"}</td><td>${(e.ch||[]).join("/")} ch</td><td class="small">${E(e.src)}</td></tr>`).join("")+`</tbody></table>`:""}
+   ${powers.length?`<p class="small"><b>Puissances retenues :</b> ${powers.slice(0,12).map(x=>x.ch+" ch").join(" · ")}</p>`:""}`;
   host.appendChild(sec);
 }
 
-/* ============ 9. Chaînage des globaux ============ */
+/* ============ Chaînage ============ */
 function chain(){
   const _fill=window.fillDatalists,_majM=window.majModeles,_an=window.analyser,_cx=window.analyserContexte;
   window.fillDatalists=function(){if(_fill)_fill();ensureUI();renderEnginePanel();majPuiss();};
-  window.majModeles=function(){if(_majM)_majM();renderEnginePanel();majPuiss();};
+  window.majModeles=function(){if(_majM)_majM();renderEnginePanel();sanitizeMotor();majPuiss();};
   window.majPuiss=majPuiss;
   window.analyser=async function(){if(_an)await _an();appendPower("rapport");};
   window.analyserContexte=async function(){if(_cx)await _cx();appendPower("ctxReport");};
-  window.renderResults=function(){
-    const q=(D("q")?.value||"").trim(),box=D("results");if(!box)return;
-    const themeOk=e=>(typeof THEME==="undefined"||THEME==="tous"||(e.themes||[]).includes(THEME));
-    const card=e=>{try{return hitCard(e);}catch(_){return `<div class="hit"><b>${E(e.defaut||"")}</b></div>`;}};
-    if(!q){const l=(typeof search==="function"?search(""):(typeof BASE!=="undefined"?BASE:[]).filter(themeOk)).slice(0,20);
-      box.innerHTML=l.map(e=>card(e)+powerNote(e)).join("")||`<p class="small">Base vide.</p>`;return;}
-    const veh=(typeof searchVehicles==="function")?searchVehicles(q):[];
-    const faults=(typeof search==="function")?search(q):[];
-    const vcard=v=>{let h;try{h=vehCard(v);}catch(_){h=`<div class="hit"><b>🚗 ${E(v.marque)} ${E(v.modele)}</b></div>`;}
-      if(!v.v||!v.v.length){const p=knownPowers(v.marque,v.modele,"");if(p.length)h+=`<div class="de-note" style="color:#93a0d6;font-size:.72rem">⚙️ Puissances usuelles : ${p.slice(0,10).map(x=>x.ch+" ch").join(" · ")}</div>`;}
-      const eng=enginesFor(v.marque,v.modele);
-      if(eng.length)h+=`<div class="de-note" style="color:#93a0d6;font-size:.72rem">⚙️ Motorisations : ${eng.slice(0,6).map(x=>x.m+" ("+x.en+")").join(" · ")}</div>`;
-      return h;};
-    box.innerHTML=(veh.length?`<h3 class="de-h3" style="color:#00e5ff;margin:14px 0 6px">🚗 Véhicules · motorisations · puissances (${veh.length})</h3>`+veh.map(vcard).join(""):"")+
-      `<h3 class="de-h3" style="color:#00e5ff;margin:14px 0 6px">🔧 Pannes &amp; rappels (${faults.length})</h3>`+
-      (faults.length?faults.map(e=>card(e)+powerNote(e)).join(""):`<p class="small">Aucune panne pour cette saisie.</p>`);
-  };
 }
 
-/* ============ 10. boot ============ */
+/* ============ boot ============ */
 function boot(){
   if(!D("topAnalyse"))return setTimeout(boot,120);
   chain();hookUI();
   attachSuggest(D("cMoteur"),provMoteursRich);
-  setInterval(()=>{if(!D("de-panel")?.classList.contains("open")){renderEnginePanel();}},5000);
-  console.log("⚙️ Power & Motorisation Engine v2 prêt");
+  setInterval(()=>{if(!D("de-panel")?.classList.contains("open"))renderEnginePanel();},5000);
+  console.log("⚙️ Power & Motorisation Engine v3 prêt (attribution réelle + énergie auto)");
 }
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot);else boot();
-window.POWER={knownPowers,majPuiss,enginesFor,table:POWER_TABLE,db:ENGINE_DB,pool:MARQUE_POOL};
+window.POWER={knownPowers,majPuiss,enginesFor,isAttributable,table:POWER_TABLE,db:ENGINE_DB,pool:MARQUE_POOL};
 })();
